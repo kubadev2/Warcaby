@@ -10,6 +10,7 @@ namespace Warcaby
         private Board board;
         private CheckerPiece selectedPiece = null;
         private Color defaultCellColor;  // Domyślny kolor tła komórki
+        private bool isPlayer1Turn = true; // Zmienna śledząca aktualnego gracza (true - gracz 1, false - gracz 2)
 
         public GameForm(string difficulty)
         {
@@ -24,13 +25,16 @@ namespace Warcaby
                 lblCurrentPlayer.Text = "Gra dla dwóch graczy";
             }
 
-            board = new Board();
+            // Utwórz instancję klasy Board i przekaż do niej referencję do tego obiektu GameForm
+            board = new Board(this);
             SetupBoard();
+            Console.WriteLine("GameForm constructor called");
         }
 
         private void SetupBoard()
         {
-            tableLayoutPanel1.Controls.Clear();
+            bool isWhite = true;
+            int cellSize = 60; // Rozmiar komórki planszy
 
             for (int row = 0; row < 8; row++)
             {
@@ -38,21 +42,11 @@ namespace Warcaby
                 {
                     Panel cellPanel = new Panel
                     {
-                        Dock = DockStyle.Fill,
+                        Location = new Point(col * cellSize, row * cellSize),
+                        Size = new Size(cellSize, cellSize),
                         BackColor = board.GetCellColor(row, col)
                     };
 
-                    Label label = new Label
-                    {
-                        Text = $"{row},{col}",
-                        ForeColor = Color.Green,
-                        Font = new Font("Arial", 10, FontStyle.Bold),
-                        TextAlign = ContentAlignment.MiddleCenter
-                    };
-
-                    cellPanel.Controls.Add(label);
-
-                    tableLayoutPanel1.Controls.Add(cellPanel, col, row);
                     cellPanel.Click += CellPanel_Click;
 
                     CheckerPiece piece = board.PieceAt(row, col);
@@ -60,144 +54,260 @@ namespace Warcaby
                     {
                         cellPanel.Controls.Add(piece);
                         piece.Dock = DockStyle.Fill;
-                        piece.Click += Piece_Click;
+
+                        // Dodaj obsługę kliknięcia na pionka
+                        piece.Click += CheckerPiece_Click;
+                    }
+
+                    cellPanel.Tag = new Tuple<int, int>(row, col); // Przypisz pozycję planszy jako Tag dla panelu
+                    cellPanel.BackColor = isWhite ? Color.White : Color.Black; // Ustaw kolor tła
+
+                    this.Controls.Add(cellPanel); // Dodaj panel do formularza
+                    isWhite = !isWhite; // Zmień kolor tła na przemian
+                }
+
+                isWhite = !isWhite; // Na początku kolejnego wiersza zmień kolor na przemian
+            }
+            Console.WriteLine("SetupBoard called");
+        }
+
+        private void CheckerPiece_Click(object sender, EventArgs e)
+        {
+            CheckerPiece clickedPiece = sender as CheckerPiece;
+
+            if (clickedPiece != null)
+            {
+                Console.WriteLine($"CheckerPiece_Click called for piece at Row={clickedPiece.Row}, Col={clickedPiece.Col}");
+
+                // Sprawdź, czy to jest tura aktualnego gracza
+                if ((isPlayer1Turn && clickedPiece.PieceColor == Color.White) ||
+                    (!isPlayer1Turn && clickedPiece.PieceColor == Color.Red))
+                {
+                    // Jeśli nie ma jeszcze wybranego pionka, zaznacz go
+                    if (selectedPiece == null)
+                    {
+                        selectedPiece = clickedPiece;
+                        selectedPiece.BackColor = Color.Yellow; // Zaznacz wybrany pionek na żółto
+
+                        // Ustaw domyślny kolor tła komórki na kolor tła wybranej komórki
+                        Panel selectedCell = GetCellByPosition(selectedPiece.Col, selectedPiece.Row);
+                        defaultCellColor = selectedCell.BackColor;
+
+                        // Od razu wyświetl dostępne ruchy
+                        RefreshAvailableMoves();
+                        HighlightAvailableMoves();
+                    }
+                    else if (clickedPiece == selectedPiece)
+                    {
+                        // Jeśli kliknięto ponownie ten sam pionek, odznacz go
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = null;
+                    }
+                    else
+                    {
+                        // Jeśli kliknięto inny pionek, odznacz aktualnie wybrany i zaznacz nowy
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = clickedPiece;
+                        selectedPiece.BackColor = Color.Yellow;
+
+                        // Od razu wyświetl dostępne ruchy
+                        RefreshAvailableMoves();
+                        HighlightAvailableMoves();
                     }
                 }
             }
         }
-
-
-        private int GetRowIndex(Control control)
-        {
-            return tableLayoutPanel1.GetRow(control);
-        }
-
-        private int GetColumnIndex(Control control)
-        {
-            return tableLayoutPanel1.GetColumn(control);
-        }
-
-        private void Piece_Click(object sender, EventArgs e)
-        {
-            Console.WriteLine("Piece_Click wywołane");
-            CheckerPiece clickedPiece = sender as CheckerPiece;
-
-            if (selectedPiece != null)
-            {
-                selectedPiece.BackColor = defaultCellColor;
-                ClearHighlightedCells();
-            }
-
-            if (clickedPiece.PieceColor == board.CurrentPlayerColor)
-            {
-                selectedPiece = clickedPiece;
-                defaultCellColor = selectedPiece.BackColor;
-                selectedPiece.BackColor = Color.Yellow;
-
-                List<Tuple<int, int>> availableMoves = board.GetAvailableMoves(GetRowIndex(selectedPiece), GetColumnIndex(selectedPiece));
-
-                Console.WriteLine($"Available moves for selected piece:");
-                foreach (var move in availableMoves)
-                {
-                    Console.WriteLine($"({move.Item1}, {move.Item2})");
-                }
-
-                foreach (var move in availableMoves)
-                {
-                    int row = move.Item1;
-                    int col = move.Item2;
-                    Panel cellPanel = tableLayoutPanel1.GetControlFromPosition(col, row) as Panel;
-                    cellPanel.BackColor = Color.Green;
-                }
-            }
-            else
-            {
-                selectedPiece = null;
-            }
-        }
-
-
 
         private void CellPanel_Click(object sender, EventArgs e)
         {
-            Console.WriteLine("CellPanel_Click");
-            Control clickedControl = sender as Control;
-            Panel clickedCell = clickedControl as Panel;
+            Panel clickedCell = sender as Panel;
 
-            if (selectedPiece != null && clickedCell != null && clickedCell.BackColor != Color.Black)
+            object tagObject = clickedCell.Tag;
+
+            if (tagObject != null && tagObject is Tuple<int, int> position)
             {
-                int fromRow = GetRowIndex(selectedPiece);
-                int fromCol = GetColumnIndex(selectedPiece);
-                int toRow = tableLayoutPanel1.GetRow(clickedCell);
-                int toCol = tableLayoutPanel1.GetColumn(clickedCell);
+                int clickedRow = position.Item1;
+                int clickedCol = position.Item2;
 
-                if (board.IsValidMove(fromRow, fromCol, toRow, toCol))
+                Console.WriteLine($"CellPanel_Click called with Row={clickedRow}, Col={clickedCol}");
+
+                if (selectedPiece != null)
                 {
-                    Panel fromCell = tableLayoutPanel1.GetControlFromPosition(fromCol, fromRow) as Panel;
-                    fromCell.Controls.Remove(selectedPiece);
-                    clickedCell.Controls.Add(selectedPiece);
-                    selectedPiece.Dock = DockStyle.Fill;
+                    int fromRow = selectedPiece.Row;
+                    int fromCol = selectedPiece.Col;
+                    int toRow = clickedRow;
+                    int toCol = clickedCol;
 
-                    board.MovePiece(fromRow, fromCol, toRow, toCol);
+                    CheckerPiece clickedPiece = board.PieceAt(clickedRow, clickedCol);
 
-                    // Usunięcie pionka przeskakiwanego
-                    int jumpedRow = (fromRow + toRow) / 2;
-                    int jumpedCol = (fromCol + toCol) / 2;
-                    CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
-                    if (jumpedPiece != null)
+                    if (clickedPiece != null && clickedPiece.PieceColor == selectedPiece.PieceColor)
                     {
-                        Panel jumpedCell = tableLayoutPanel1.GetControlFromPosition(jumpedCol, jumpedRow) as Panel;
-                        jumpedCell.Controls.Remove(jumpedPiece);
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = clickedPiece;
+                        selectedPiece.BackColor = Color.Yellow;
                     }
-
-                    // Awansowanie pionka na damkę
-                    if ((toRow == 0 && selectedPiece.PieceColor == Color.White) ||
-                        (toRow == 7 && selectedPiece.PieceColor == Color.Red))
+                    else if (board.IsValidMove(fromRow, fromCol, toRow, toCol) &&
+                             Math.Abs(toRow - fromRow) == 1) // Ruch dozwolony po skosie do góry
                     {
-                        selectedPiece.IsKing = true;
-                        selectedPiece.BackColor = Color.Gold;
-                    }
+                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
+                        clickedCell.Controls.Add(selectedPiece);
+                        Console.WriteLine("Pionek dodany");
+                        fromCell.Controls.Remove(selectedPiece);
+                        Console.WriteLine("Pionek usunięty");
 
-                    selectedPiece = null;
-                    board.SwitchPlayer();
-                    ClearHighlightedCells();
-                    UpdateUI();
+                        selectedPiece.Dock = DockStyle.Fill;
+                        //SwitchPlayer();
+
+                        if (fromCell != clickedCell) // Sprawdzamy, czy pionek zmienił pole
+                        {
+                            board.MovePiece(fromRow, fromCol, toRow, toCol);
+                        }
+
+                        // Usunięcie pionka przeskakiwanego
+                        int jumpedRow = (fromRow + toRow) / 2;
+                        int jumpedCol = (fromCol + toCol) / 2;
+                        CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
+                        if (jumpedPiece != null)
+                        {
+                            Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
+                            jumpedCell.Controls.Remove(jumpedPiece);
+                        }
+
+                        // Awansowanie pionka na damkę
+                        if ((toRow == 0 && selectedPiece.PieceColor == Color.White) ||
+                            (toRow == 7 && selectedPiece.PieceColor == Color.Red))
+                        {
+                            selectedPiece.IsKing = true;
+                            selectedPiece.BackColor = Color.Gold;
+                        }
+
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = null;
+
+                        RefreshAvailableMoves();
+                    }
+                    else if (board.IsValidJump(fromRow, fromCol, toRow, toCol) &&
+                             Math.Abs(toRow - fromRow) == 2) // Bicie dozwolone po skosie do góry
+                    {
+                        Console.WriteLine("jump in cell panel click");
+                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
+                        fromCell.Controls.Remove(selectedPiece);
+                        clickedCell.Controls.Add(selectedPiece);
+                        selectedPiece.Dock = DockStyle.Fill;
+
+                        board.MovePiece(fromRow, fromCol, toRow, toCol);
+
+                        int jumpedRow = (fromRow + toRow) / 2;
+                        int jumpedCol = (fromCol + toCol) / 2;
+                        CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
+                        if (jumpedPiece != null)
+                        {
+                            Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
+                            jumpedCell.Controls.Remove(jumpedPiece);
+                        }
+
+                        if ((toRow == 0 && selectedPiece.PieceColor == Color.White) ||
+                            (toRow == 7 && selectedPiece.PieceColor == Color.Red))
+                        {
+                            selectedPiece.IsKing = true;
+                            selectedPiece.BackColor = Color.Gold;
+                        }
+
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = null;
+
+                        RefreshAvailableMoves();
+                    }
+                }
+                else if (clickedCell.Controls.Count > 0)
+                {
+                    selectedPiece = clickedCell.Controls[0] as CheckerPiece;
                 }
             }
         }
 
-
-        private void UpdateUI()
+        private void RefreshAvailableMoves()
         {
-            Console.WriteLine("UpdateUI wywołane");
-            lblCurrentPlayer.Text = "Aktualny gracz: " + (board.CurrentPlayerColor == Color.White ? "Biały" : "Czerwony");
-        }
-
-        private List<Panel> highlightedCells = new List<Panel>(); // Dodaj pole
-
-        private void ClearHighlightedCells()
-        {
-            Console.WriteLine("ClearHighlightedCells wywołane");
-            foreach (Control control in tableLayoutPanel1.Controls)
+            // Usuń podświetlenie dostępnych ruchów (przywróć domyślny kolor tła)
+            foreach (Control control in this.Controls)
             {
-                Panel cellPanel = control as Panel;
-                if (cellPanel != null && cellPanel.BackColor == Color.Green)
+                if (control is Panel cellPanel)
                 {
-                    cellPanel.BackColor = board.GetCellColor(tableLayoutPanel1.GetRow(cellPanel), tableLayoutPanel1.GetColumn(cellPanel));
-
-                    if (cellPanel.Controls.Count == 0)
+                    Tuple<int, int> position = cellPanel.Tag as Tuple<int, int>;
+                    if (position != null)
                     {
-                        cellPanel.BackColor = Color.Black;
+                        int row = position.Item1;
+                        int col = position.Item2;
+                        cellPanel.BackColor = board.GetCellColor(row, col);
                     }
                 }
             }
 
-            // Wyczyść listę podświetlonych pól
-            foreach (Panel highlightedCell in highlightedCells)
+            // Jeśli wybrano pionka, podświetl dostępne ruchy
+            if (selectedPiece != null)
             {
-                highlightedCell.BackColor = board.GetCellColor(tableLayoutPanel1.GetRow(highlightedCell), tableLayoutPanel1.GetColumn(highlightedCell));
+                int fromRow = selectedPiece.Row;
+                int fromCol = selectedPiece.Col;
+
+                for (int row = 0; row < 8; row++)
+                {
+                    for (int col = 0; col < 8; col++)
+                    {
+                        if (board.IsValidMove(fromRow, fromCol, row, col) &&
+                            GetCellByPosition(col, row).BackColor == Color.Black) // Sprawdź, czy pole jest czarne
+                        {
+                            Panel cellPanel = GetCellByPosition(col, row);
+                            cellPanel.BackColor = Color.Green; // Podświetl dostępne ruchy na zielono
+                        }
+                    }
+                }
             }
-            highlightedCells.Clear();
+        }
+
+        private void HighlightAvailableMoves()
+        {
+            // Przechodź przez wszystkie komórki na planszy
+            for (int row = 0; row < 8; row++)
+            {
+                for (int col = 0; col < 8; col++)
+                {
+                    // Sprawdź, czy ruch jest dozwolony z aktualnie wybranej pozycji
+                    if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, row, col))
+                    {
+                        Panel cellPanel = GetCellByPosition(col, row);
+                        cellPanel.BackColor = Color.Green; // Podświetl dostępne ruchy na zielono
+                    }
+                }
+            }
+        }
+
+        public Panel GetCellByPosition(int col, int row)
+        {
+            foreach (Control control in this.Controls)
+            {
+                if (control is Panel cellPanel)
+                {
+                    Tuple<int, int> position = cellPanel.Tag as Tuple<int, int>;
+                    if (position != null && position.Item1 == row && position.Item2 == col)
+                    {
+                        return cellPanel;
+                    }
+                }
+            }
+            return null;
+        }
+        public void SwitchPlayer()
+        {
+            isPlayer1Turn = !isPlayer1Turn;
+
+            if (isPlayer1Turn)
+            {
+                lblCurrentPlayer.Text = "Gracz 1";
+            }
+            else
+            {
+                lblCurrentPlayer.Text = "Gracz 2";
+            }
         }
 
     }
