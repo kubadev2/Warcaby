@@ -54,8 +54,73 @@ namespace Warcaby
                     // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
                 }
             }
+            else if(!isPlayer1Turn && level == "Hard")
+            {
+                // Znajdź wszystkie dostępne ruchy dla czerwonych pionków
+                List<Tuple<int, int, int, int>> availableMoves = FindAllAvailableMoves(Color.Red);
+
+                // Znajdź wszystkie dostępne bicia dla czerwonych pionków
+                List<Tuple<int, int, int, int>> availableJumps = FindAllAvailableJumps(Color.Red);
+
+                // Jeśli są dostępne bicia, wykonaj losowe bicie
+                if (availableJumps.Count > 0)
+                {
+                    Random random = new Random();
+                    int randomIndex = random.Next(availableJumps.Count);
+                    var jump = availableJumps[randomIndex];
+
+                    int fromRow = jump.Item1;
+                    int fromCol = jump.Item2;
+                    int toRow = jump.Item3;
+                    int toCol = jump.Item4;
+
+                    CheckerPiece botPiece = board.PieceAt(fromRow, fromCol);
+
+                    // Wykonaj bicie
+                    Console.WriteLine(fromRow + " " + fromCol + " " + toRow + " " + toCol);
+                    board.MovePiece(fromRow, fromCol, toRow, toCol);
+
+                    GetCellByPosition(toCol, toRow).Controls.Add(botPiece);
+                    botPiece.Dock = DockStyle.Fill;
+                    botPiece.Row = toRow; // Aktualizacja pozycji pionka
+                    botPiece.Col = toCol;
+
+                    Console.WriteLine("zbijający powinien stać na" + toRow + " " + toCol);
+                }
+                else if (availableMoves.Count > 0)
+                {
+                    // Jeśli nie ma dostępnych bic, to wykonaj losowy ruch
+                    Random random = new Random();
+                    int randomIndex = random.Next(availableMoves.Count);
+                    var move = availableMoves[randomIndex];
+
+                    int fromRow = move.Item1;
+                    int fromCol = move.Item2;
+                    int toRow = move.Item3;
+                    int toCol = move.Item4;
+
+                    CheckerPiece botPiece = board.PieceAt(fromRow, fromCol);
+
+                    // Wykonaj ruch
+                    Console.WriteLine(fromRow + " " + fromCol + " " + toRow + " " + toCol);
+                    board.MovePiece(fromRow, fromCol, toRow, toCol);
+
+                    GetCellByPosition(toCol, toRow).Controls.Add(botPiece);
+                    botPiece.Dock = DockStyle.Fill;
+                    botPiece.Row = toRow; // Aktualizacja pozycji pionka
+                    botPiece.Col = toCol;
+
+                    Console.WriteLine("ruch na" + toRow + " " + toCol);
+                }
+                else
+                {
+                    // Jeśli nie ma dostępnych ruchów, to czerwoni przegrywają
+                    MessageBox.Show("Czerwoni przegrywają. Koniec gry.");
+                    // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
+                }
+            }
         }
-        
+
 
 
 
@@ -89,8 +154,65 @@ namespace Warcaby
 
             return availableMoves;
         }
+        private List<Tuple<int, int, int, int>> FindAllAvailableJumps(Color playerColor)
+        {
+            // Znajdź wszystkie dostępne bicia (również dla damek) dla danego koloru gracza
+            List<Tuple<int, int, int, int>> availableJumps = new List<Tuple<int, int, int, int>>();
+
+            for (int fromRow = 0; fromRow < 8; fromRow++)
+            {
+                for (int fromCol = 0; fromCol < 8; fromCol++)
+                {
+                    CheckerPiece piece = board.PieceAt(fromRow, fromCol);
+
+                    if (piece != null && piece.PieceColor == playerColor)
+                    {
+                        for (int toRow = 0; toRow < 8; toRow++)
+                        {
+                            for (int toCol = 0; toCol < 8; toCol++)
+                            {
+                                if (board.IsValidJump(fromRow, fromCol, toRow, toCol))
+                                {
+                                    availableJumps.Add(Tuple.Create(fromRow, fromCol, toRow, toCol));
+                                }
+                            }
+                        }
+
+                        if (piece.IsKing)
+                        {
+                            // Sprawdź skoki damki w kierunkach przeciwnych
+                            for (int rowDirection = -1; rowDirection <= 1; rowDirection += 2)
+                            {
+                                for (int colDirection = -1; colDirection <= 1; colDirection += 2)
+                                {
+                                    for (int jumpLength = 2; jumpLength < 8; jumpLength += 2)
+                                    {
+                                        int toRow = fromRow + rowDirection * jumpLength;
+                                        int toCol = fromCol + colDirection * jumpLength;
+
+                                        if (toRow >= 0 && toRow < 8 && toCol >= 0 && toCol < 8 &&
+                                            board.IsValidJump(fromRow, fromCol, toRow, toCol))
+                                        {
+                                            availableJumps.Add(Tuple.Create(fromRow, fromCol, toRow, toCol));
+                                        }
+                                        else
+                                        {
+                                            break; // Przerwij pętlę, jeśli wyjście poza planszę
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return availableJumps;
+        }
+
         public void SwitchPlayer()
         {
+            // Zmiana gracza
             isPlayer1Turn = !isPlayer1Turn;
 
             if (isPlayer1Turn)
@@ -100,9 +222,33 @@ namespace Warcaby
             else
             {
                 lblCurrentPlayer.Text = "Gracz 2";
-                PerformBotMove();
+                PerformBotMove(); // Jeśli to ruch bota (jeśli gra z komputerem)
+            }
+
+            // Sprawdzenie dostępnych ruchów
+            bool playerHasMoves = CheckAvailableMoves(isPlayer1Turn);
+
+            if (!playerHasMoves)
+            {
+                // Jeśli gracz nie ma dostępnych ruchów, wyświetl komunikat o zwycięstwie przeciwnika
+                string winner = isPlayer1Turn ? "Gracz 2" : "Gracz 1";
+                MessageBox.Show(winner + " zwycięża. Koniec gry.");
+                // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
             }
         }
+
+        private bool CheckAvailableMoves(bool isPlayer1)
+        {
+            Color playerColor = isPlayer1 ? Color.White : Color.Red;
+
+            // Znajdź wszystkie dostępne ruchy i bicia dla danego gracza
+            List<Tuple<int, int, int, int>> availableMoves = FindAllAvailableMoves(playerColor);
+            List<Tuple<int, int, int, int>> availableJumps = FindAllAvailableJumps(playerColor);
+
+            // Jeśli są dostępne ruchy lub bicia, zwróć true; w przeciwnym razie zwróć false
+            return availableMoves.Count > 0 || availableJumps.Count > 0;
+        }
+
         public GameForm(string difficulty)
         {
             InitializeComponent();
@@ -278,50 +424,7 @@ namespace Warcaby
                         HighlightAvailableMoves();
                     }
                 }
-                else if (selectedPiece != null &&
-                         selectedPiece.PieceColor == Color.White && clickedPiece.PieceColor == Color.Red)
-                {
-                    // Obsłuż sytuację, w której biały pionek próbuje zbijać czerwonego.
-                    int fromRow = selectedPiece.Row;
-                    int fromCol = selectedPiece.Col;
-                    int toRow = clickedPiece.Row;
-                    int toCol = clickedPiece.Col;
-
-                    // Sprawdź, czy ruch jest dozwolony i czy jest to ruch "bicia"
-                    if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) == 2)
-                    {
-                        // Biały pionek zbija czerwonego
-                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
-                        Panel jumpedCell = GetCellByPosition((fromCol + toCol) / 2, (fromRow + toRow) / 2);
-                        CheckerPiece jumpedPiece = board.PieceAt((fromRow + toRow) / 2, (fromCol + toCol) / 2);
-
-                        fromCell.Controls.Remove(selectedPiece);
-                        jumpedCell.Controls.Remove(jumpedPiece); // Usuń zbitego pionka przeciwnika
-                        GetCellByPosition(toCol, toRow).Controls.Add(selectedPiece);
-
-                        selectedPiece.Row = toRow;
-                        selectedPiece.Col = toCol;
-
-                        board.MovePiece(fromRow, fromCol, toRow, toCol);
-                        board.RemovePiece((fromRow + toRow) / 2, (fromCol + toCol) / 2);
-
-                        // Sprawdź, czy biały pionek stał się królem
-                        if (toRow == 0)
-                        {
-                            selectedPiece.IsKing = true;
-                            selectedPiece.BackColor = Color.Gold;
-                        }
-
-                        selectedPiece.BackColor = defaultCellColor;
-                        selectedPiece = null;
-
-                        // Odśwież dostępne ruchy
-                        RefreshAvailableMoves();
-
-                        // Zmiana gracza
-                        SwitchPlayer();
-                    }
-                }
+                
             }
         }
 
@@ -348,36 +451,58 @@ namespace Warcaby
 
                     CheckerPiece clickedPiece = board.PieceAt(clickedRow, clickedCol);
 
-                    if (clickedPiece != null && clickedPiece.PieceColor == selectedPiece.PieceColor)
+                    // Sprawdź najpierw ruchy damy
+                    if (selectedPiece.IsKing && (Math.Abs(toRow - fromRow) > 1))
                     {
-                        selectedPiece.BackColor = defaultCellColor;
-                        selectedPiece = clickedPiece;
-                        selectedPiece.BackColor = Color.Yellow;
-                    }
-                    else if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, toRow, toCol) &&
-                             Math.Abs(toRow - fromRow) == 1) // Ruch dozwolony po skosie do góry
-                    {
-                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
-                        clickedCell.Controls.Add(selectedPiece);
-                        fromCell.Controls.Remove(selectedPiece);
+                        int rowDirection = (toRow - fromRow) / Math.Abs(toRow - fromRow);
+                        int colDirection = (toCol - fromCol) / Math.Abs(toCol - fromCol);
 
+                        int currentRow = fromRow + rowDirection;
+                        int currentCol = fromCol + colDirection;
+
+                        while (currentRow != toRow && currentCol != toCol)
+                        {
+                            int jumpedRow = (fromRow + currentRow) / 2;
+                            int jumpedCol = (fromCol + currentCol) / 2;
+                            CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
+
+                            if (jumpedPiece != null)
+                            {
+                                Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
+                                jumpedCell.Controls.Remove(jumpedPiece);
+                                jumpedCell.Controls.Clear();
+                                board.RemovePiece(jumpedRow, jumpedCol);
+                            }
+
+                            currentRow += rowDirection;
+                            currentCol += colDirection;
+                        }
+
+                        // Obsłuż ruch damy
+                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
+                        fromCell.Controls.Remove(selectedPiece);
+                        clickedCell.Controls.Add(selectedPiece);
+                        selectedPiece.Dock = DockStyle.Fill;
                         selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
                         selectedPiece.Col = toCol;
 
-                        selectedPiece.Dock = DockStyle.Fill;
+                        board.MovePiece(fromRow, fromCol, toRow, toCol);
 
-                        if (fromCell != clickedCell)
+                        if (toRow == 0 && selectedPiece.PieceColor == Color.White)
                         {
-                            board.MovePiece(fromRow, fromCol, toRow, toCol);
+                            selectedPiece.IsKing = true;
+                            selectedPiece.BackColor = Color.Gold;
                         }
 
                         selectedPiece.BackColor = defaultCellColor;
                         selectedPiece = null;
 
                         RefreshAvailableMoves();
+                        return; // Zakończ obsługę kliknięcia
                     }
-                    else if (board.IsValidJump(selectedPiece.Row, selectedPiece.Col, toRow, toCol) &&
-                             Math.Abs(toRow - fromRow) == 2) // Bicie dozwolone po skosie do góry
+
+                    // Następnie sprawdź bicia
+                    if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) == 2)
                     {
                         Panel fromCell = GetCellByPosition(fromCol, fromRow);
                         fromCell.Controls.Remove(selectedPiece);
@@ -391,17 +516,43 @@ namespace Warcaby
                         int jumpedRow = (fromRow + toRow) / 2;
                         int jumpedCol = (fromCol + toCol) / 2;
                         CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
-                        Console.WriteLine("usuwamy with cell click: " + jumpedRow + " " + jumpedCol);
+
+                        if (jumpedPiece != null)
+                        {
                             Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
                             jumpedCell.Controls.Remove(jumpedPiece);
-                        jumpedCell.Controls.Clear();
-                        //board.RemovePiece(jumpedRow, jumpedCol); // Usuń pionka z planszy
-                      
+                            jumpedCell.Controls.Clear();
+                        }
 
                         if (toRow == 0 && selectedPiece.PieceColor == Color.White)
                         {
                             selectedPiece.IsKing = true;
                             selectedPiece.BackColor = Color.Gold;
+                        }
+
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = null;
+
+                        RefreshAvailableMoves();
+                        return; // Zakończ obsługę kliknięcia
+                    }
+
+                    // Na koniec sprawdź ruchy zwykłych pionków
+                    if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, toRow, toCol) &&
+                        Math.Abs(toRow - fromRow) == 1)
+                    {
+                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
+                        clickedCell.Controls.Add(selectedPiece);
+                        fromCell.Controls.Remove(selectedPiece);
+
+                        selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
+                        selectedPiece.Col = toCol;
+
+                        selectedPiece.Dock = DockStyle.Fill;
+
+                        if (fromCell != clickedCell)
+                        {
+                            board.MovePiece(fromRow, fromCol, toRow, toCol);
                         }
 
                         selectedPiece.BackColor = defaultCellColor;

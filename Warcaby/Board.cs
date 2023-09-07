@@ -113,22 +113,43 @@ namespace Warcaby
             int rowDiff = Math.Abs(toRow - fromRow);
             int colDiff = Math.Abs(toCol - fromCol);
 
-            if (rowDiff == 1 && colDiff == 1)
+            if (piece.IsKing)
             {
-                if ((piece.PieceColor == Color.White && toRow < fromRow) ||
-                    (piece.PieceColor == Color.Red && toRow > fromRow))
+                if (rowDiff == colDiff && rowDiff >= 1) // Dla damy można poruszać się po przekątnych o więcej niż jedno oczko
                 {
-                    Console.WriteLine("Ruch o jedno pole w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
+                    // Sprawdź, czy pole między początkowym a docelowym jest puste
+                    int currentRow = fromRow;
+                    int currentCol = fromCol;
+                    int rowDirection = (toRow - fromRow) / rowDiff;
+                    int colDirection = (toCol - fromCol) / colDiff;
+
+                    while (currentRow != toRow && currentCol != toCol)
+                    {
+                        currentRow += rowDirection;
+                        currentCol += colDirection;
+
+                        if (pieces[currentRow, currentCol] != null)
+                        {
+                            Console.WriteLine("Nie można przesunąć damy przez zajęte pole.");
+                            return false;
+                        }
+                    }
+
+                    Console.WriteLine("Ruch po przekątnej (o więcej niż jedno oczko) jest dozwolony dla damy.");
                     return true;
                 }
             }
-
-            if (piece.IsKing)
+            else
             {
+                // Sprawdź, czy ruch jest dozwolony dla pionka (nie damy)
                 if (rowDiff == 1 && colDiff == 1)
                 {
-                    Console.WriteLine("Ruch o jedno pole w prawo lub lewo i w dół (lub w górę) jest dozwolony dla damki.");
-                    return true;
+                    if ((piece.PieceColor == Color.White && toRow < fromRow) ||
+                        (piece.PieceColor == Color.Red && toRow > fromRow))
+                    {
+                        Console.WriteLine("Ruch o jedno pole w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
+                        return true;
+                    }
                 }
             }
 
@@ -152,41 +173,93 @@ namespace Warcaby
                 return false;
             }
 
-            int jumpedRow = (fromRow + toRow) / 2;
-            int jumpedCol = (fromCol + toCol) / 2;
-            CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
-
-            if (jumpedPiece == null || jumpedPiece.PieceColor == piece.PieceColor)
-            {
-                Console.WriteLine("Nie ma pionka przeciwnika na środkowym polu lub jest to twój własny pionek, nie można wykonać skoku.");
-                return false;
-            }
-
             int rowDiff = Math.Abs(toRow - fromRow);
             int colDiff = Math.Abs(toCol - fromCol);
 
-            if (rowDiff == 2 && colDiff == 2)
+            if (piece.IsKing)
             {
-                if ((piece.PieceColor == Color.White && toRow < fromRow) ||
-                    (piece.PieceColor == Color.Red && toRow > fromRow))
+                if (rowDiff == colDiff && rowDiff >= 2) // Dla damy można przeskakiwać po przekątnej o więcej niż jedno oczko
                 {
-                    Console.WriteLine("Skok o dwa pola w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
-                    return true;
+                    int rowDirection = (toRow - fromRow) / rowDiff;
+                    int colDirection = (toCol - fromCol) / colDiff;
+
+                    int currentRow = fromRow + rowDirection;
+                    int currentCol = fromCol + colDirection;
+
+                    CheckerPiece lastJumpedPiece = null; // Ostatni przeskoczony pionek
+
+                    while (currentRow != toRow && currentCol != toCol)
+                    {
+                        CheckerPiece jumpedPiece = pieces[currentRow, currentCol];
+
+                        if (jumpedPiece != null)
+                        {
+                            if (jumpedPiece.PieceColor != piece.PieceColor)
+                            {
+                                // Znaleziono pionka przeciwnika
+                                if (lastJumpedPiece != null)
+                                {
+                                    // Istnieje przynajmniej jeden przeskoczony pionek, więc można wykonać bicie
+                                    Console.WriteLine("Skok po przekątnej (o więcej niż jedno oczko) jest dozwolony dla damy.");
+                                    return true;
+                                }
+                                else
+                                {
+                                    // Znaleziono pierwszego pionka przeciwnika, zapamiętaj go
+                                    lastJumpedPiece = jumpedPiece;
+                                }
+                            }
+                            else
+                            {
+                                // Znaleziono pionka własnego - nie można bić
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            // Znaleziono wolną komórkę
+                            if (lastJumpedPiece != null)
+                            {
+                                // Istnieje przynajmniej jeden przeskoczony pionek, więc można wykonać bicie
+                                Console.WriteLine("Skok po przekątnej (o więcej niż jedno oczko) jest dozwolony dla damy.");
+                                return true;
+                            }
+                        }
+
+                        currentRow += rowDirection;
+                        currentCol += colDirection;
+                    }
                 }
             }
 
-            if (piece.IsKing)
+
+
+            else
             {
+                // Sprawdź, czy skok jest dozwolony dla pionka (nie damy)
                 if (rowDiff == 2 && colDiff == 2)
                 {
-                    Console.WriteLine("Skok o dwa pola w prawo lub lewo i w dół (lub w górę) jest dozwolony dla damki.");
-                    return true;
+                    int jumpedRow = (fromRow + toRow) / 2;
+                    int jumpedCol = (fromCol + toCol) / 2;
+                    CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
+
+                    if (jumpedPiece != null && jumpedPiece.PieceColor != piece.PieceColor)
+                    {
+                        Console.WriteLine("Skok o dwa pola w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
+                        return true;
+                    }
                 }
             }
 
             Console.WriteLine("Ten skok nie jest dozwolony.");
             return false;
         }
+
+
+
+
+
+
 
         public Color GetCellColor(int row, int col)
         {
