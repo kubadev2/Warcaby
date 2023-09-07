@@ -35,6 +35,26 @@ namespace Warcaby
         {
             bool isWhite = true;
             int cellSize = 60; // Rozmiar komórki planszy
+            int leftPadding = 50; // Odległość od lewej krawędzi formularza
+
+            char[] letters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
+            int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+            // Dodaj litery do górnego rzędu
+            for (int col = 0; col < 8; col++)
+            {
+                Label letterLabel = new Label
+                {
+                    Location = new Point(leftPadding + col * cellSize, 0),
+                    Size = new Size(cellSize, cellSize),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Text = letters[col].ToString(),
+                    Font = new Font(Font.FontFamily, 14, FontStyle.Bold),
+                    ForeColor = isWhite ? Color.Black : Color.White
+                };
+
+                this.Controls.Add(letterLabel);
+            }
 
             for (int row = 0; row < 8; row++)
             {
@@ -42,7 +62,7 @@ namespace Warcaby
                 {
                     Panel cellPanel = new Panel
                     {
-                        Location = new Point(col * cellSize, row * cellSize),
+                        Location = new Point(leftPadding + col * cellSize, (row + 1) * cellSize),
                         Size = new Size(cellSize, cellSize),
                         BackColor = board.GetCellColor(row, col)
                     };
@@ -63,6 +83,23 @@ namespace Warcaby
                     cellPanel.BackColor = isWhite ? Color.White : Color.Black; // Ustaw kolor tła
 
                     this.Controls.Add(cellPanel); // Dodaj panel do formularza
+
+                    // Dodaj czarne cyfry do lewej kolumny
+                    if (col == 0)
+                    {
+                        Label numberLabel = new Label
+                        {
+                            Location = new Point(col * cellSize, (row + 1) * cellSize),
+                            Size = new Size(leftPadding, cellSize),
+                            TextAlign = ContentAlignment.MiddleCenter,
+                            Text = numbers[row].ToString(),
+                            Font = new Font(Font.FontFamily, 14, FontStyle.Bold),
+                            ForeColor = Color.Black // Ustaw kolor czcionki na czarny
+                        };
+
+                        this.Controls.Add(numberLabel);
+                    }
+
                     isWhite = !isWhite; // Zmień kolor tła na przemian
                 }
 
@@ -71,6 +108,36 @@ namespace Warcaby
             Console.WriteLine("SetupBoard called");
         }
 
+
+
+        //...
+        
+
+        private void HighlightAvailableMoves()
+        {
+            // Usuń podświetlenie dostępnych ruchów (przywróć domyślny kolor tła)
+            foreach (Control control in this.Controls)
+            {
+                if (control is Panel cellPanel)
+                {
+                    Tuple<int, int> position = cellPanel.Tag as Tuple<int, int>;
+                    if (position != null)
+                    {
+                        int row = position.Item1;
+                        int col = position.Item2;
+
+                        if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, row, col))
+                        {
+                            cellPanel.BackColor = Color.LightGreen;
+                        }
+                        else if (board.IsValidJump(selectedPiece.Row, selectedPiece.Col, row, col))
+                        {
+                            cellPanel.BackColor = Color.Red;
+                        }
+                    }
+                }
+            }
+        }
         private void CheckerPiece_Click(object sender, EventArgs e)
         {
             CheckerPiece clickedPiece = sender as CheckerPiece;
@@ -115,8 +182,53 @@ namespace Warcaby
                         HighlightAvailableMoves();
                     }
                 }
+                else if (selectedPiece != null &&
+                         selectedPiece.PieceColor == Color.White && clickedPiece.PieceColor == Color.Red)
+                {
+                    // Obsłuż sytuację, w której biały pionek próbuje zbijać czerwonego.
+                    int fromRow = selectedPiece.Row;
+                    int fromCol = selectedPiece.Col;
+                    int toRow = clickedPiece.Row;
+                    int toCol = clickedPiece.Col;
+
+                    // Sprawdź, czy ruch jest dozwolony i czy jest to ruch "bicia"
+                    if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) == 2)
+                    {
+                        // Biały pionek zbija czerwonego
+                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
+                        Panel jumpedCell = GetCellByPosition((fromCol + toCol) / 2, (fromRow + toRow) / 2);
+                        CheckerPiece jumpedPiece = board.PieceAt((fromRow + toRow) / 2, (fromCol + toCol) / 2);
+
+                        fromCell.Controls.Remove(selectedPiece);
+                        jumpedCell.Controls.Remove(jumpedPiece); // Usuń zbitego pionka przeciwnika
+                        GetCellByPosition(toCol, toRow).Controls.Add(selectedPiece);
+
+                        selectedPiece.Row = toRow;
+                        selectedPiece.Col = toCol;
+
+                        board.MovePiece(fromRow, fromCol, toRow, toCol);
+                        board.RemovePiece((fromRow + toRow) / 2, (fromCol + toCol) / 2);
+
+                        // Sprawdź, czy biały pionek stał się królem
+                        if (toRow == 0)
+                        {
+                            selectedPiece.IsKing = true;
+                            selectedPiece.BackColor = Color.Gold;
+                        }
+
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = null;
+
+                        // Odśwież dostępne ruchy
+                        RefreshAvailableMoves();
+
+                        // Zmiana gracza
+                        SwitchPlayer();
+                    }
+                }
             }
         }
+
 
         private void CellPanel_Click(object sender, EventArgs e)
         {
@@ -146,39 +258,21 @@ namespace Warcaby
                         selectedPiece = clickedPiece;
                         selectedPiece.BackColor = Color.Yellow;
                     }
-                    else if (board.IsValidMove(fromRow, fromCol, toRow, toCol) &&
+                    else if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, toRow, toCol) &&
                              Math.Abs(toRow - fromRow) == 1) // Ruch dozwolony po skosie do góry
                     {
                         Panel fromCell = GetCellByPosition(fromCol, fromRow);
                         clickedCell.Controls.Add(selectedPiece);
-                        Console.WriteLine("Pionek dodany");
                         fromCell.Controls.Remove(selectedPiece);
-                        Console.WriteLine("Pionek usunięty");
+
+                        selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
+                        selectedPiece.Col = toCol;
 
                         selectedPiece.Dock = DockStyle.Fill;
-                        //SwitchPlayer();
 
-                        if (fromCell != clickedCell) // Sprawdzamy, czy pionek zmienił pole
+                        if (fromCell != clickedCell)
                         {
                             board.MovePiece(fromRow, fromCol, toRow, toCol);
-                        }
-
-                        // Usunięcie pionka przeskakiwanego
-                        int jumpedRow = (fromRow + toRow) / 2;
-                        int jumpedCol = (fromCol + toCol) / 2;
-                        CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
-                        if (jumpedPiece != null)
-                        {
-                            Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
-                            jumpedCell.Controls.Remove(jumpedPiece);
-                        }
-
-                        // Awansowanie pionka na damkę
-                        if ((toRow == 0 && selectedPiece.PieceColor == Color.White) ||
-                            (toRow == 7 && selectedPiece.PieceColor == Color.Red))
-                        {
-                            selectedPiece.IsKing = true;
-                            selectedPiece.BackColor = Color.Gold;
                         }
 
                         selectedPiece.BackColor = defaultCellColor;
@@ -186,28 +280,31 @@ namespace Warcaby
 
                         RefreshAvailableMoves();
                     }
-                    else if (board.IsValidJump(fromRow, fromCol, toRow, toCol) &&
+                    else if (board.IsValidJump(selectedPiece.Row, selectedPiece.Col, toRow, toCol) &&
                              Math.Abs(toRow - fromRow) == 2) // Bicie dozwolone po skosie do góry
                     {
-                        Console.WriteLine("jump in cell panel click");
                         Panel fromCell = GetCellByPosition(fromCol, fromRow);
                         fromCell.Controls.Remove(selectedPiece);
                         clickedCell.Controls.Add(selectedPiece);
                         selectedPiece.Dock = DockStyle.Fill;
+                        selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
+                        selectedPiece.Col = toCol;
 
                         board.MovePiece(fromRow, fromCol, toRow, toCol);
 
                         int jumpedRow = (fromRow + toRow) / 2;
                         int jumpedCol = (fromCol + toCol) / 2;
                         CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
+                        Console.WriteLine("usuwamy with cell click: " + jumpedRow + " " + jumpedCol);
                         if (jumpedPiece != null)
                         {
                             Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
                             jumpedCell.Controls.Remove(jumpedPiece);
+                            board.RemovePiece(jumpedRow, jumpedCol); // Usuń pionka z planszy
+                            jumpedCell.Invalidate(); // Odśwież panel, aby usunąć pionka
                         }
 
-                        if ((toRow == 0 && selectedPiece.PieceColor == Color.White) ||
-                            (toRow == 7 && selectedPiece.PieceColor == Color.Red))
+                        if (toRow == 0 && selectedPiece.PieceColor == Color.White)
                         {
                             selectedPiece.IsKing = true;
                             selectedPiece.BackColor = Color.Gold;
@@ -225,6 +322,10 @@ namespace Warcaby
                 }
             }
         }
+
+
+
+
 
         private void RefreshAvailableMoves()
         {
@@ -264,23 +365,7 @@ namespace Warcaby
             }
         }
 
-        private void HighlightAvailableMoves()
-        {
-            // Przechodź przez wszystkie komórki na planszy
-            for (int row = 0; row < 8; row++)
-            {
-                for (int col = 0; col < 8; col++)
-                {
-                    // Sprawdź, czy ruch jest dozwolony z aktualnie wybranej pozycji
-                    if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, row, col))
-                    {
-                        Panel cellPanel = GetCellByPosition(col, row);
-                        cellPanel.BackColor = Color.Green; // Podświetl dostępne ruchy na zielono
-                    }
-                }
-            }
-        }
-
+        
         public Panel GetCellByPosition(int col, int row)
         {
             foreach (Control control in this.Controls)

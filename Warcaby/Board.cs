@@ -92,20 +92,24 @@ namespace Warcaby
             toCell.Controls.Add(newPiece);
             newPiece.Location = new Point(toCol * 60, toRow * 60);
 
-            // Usuń pionek przeskakiwanego
+            // Usuń pionek przeskakiwany
             if (Math.Abs(toRow - fromRow) == 2)
             {
                 int jumpedRow = (fromRow + toRow) / 2;
                 int jumpedCol = (fromCol + toCol) / 2;
+                Console.WriteLine("usuwamy: " + jumpedRow + " " + jumpedCol);
                 CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
                 if (jumpedPiece != null)
                 {
-                    pieces[jumpedRow, jumpedCol] = null;
-                    jumpedPiece.Dispose(); // Usuń pionka z planszy
+                    Console.WriteLine("usuwamy pionka");
+                    pieces[jumpedRow, jumpedCol] = null; // Usuń pionka z planszy
+                    jumpedPiece.Dispose(); // Usuń pionka z formularza
                     Panel jumpedCell = gameForm.GetCellByPosition(jumpedCol, jumpedRow);
                     jumpedCell.Controls.Remove(jumpedPiece);
+                    Console.WriteLine("pionek usunięty");
                 }
             }
+
 
             // Awansuj pionka na damkę, jeśli dotrze do końca planszy
             if ((toRow == 0 && newPiece.PieceColor == Color.White) || (toRow == 7 && newPiece.PieceColor == Color.Red))
@@ -126,145 +130,112 @@ namespace Warcaby
 
 
 
-
-
-
-        // Zaktualizuj funkcję IsValidMove w klasie Board
         public bool IsValidMove(int fromRow, int fromCol, int toRow, int toCol)
         {
             Console.WriteLine("IsValidMove called");
-
-            // Sprawdź, czy pole docelowe jest poza planszą
-            if (toRow < 0 || toRow >= 8 || toCol < 0 || toCol >= 8)
-            {
-                Console.WriteLine("1");
-                return false;
-            }
-
             CheckerPiece piece = pieces[fromRow, fromCol];
+
             if (piece == null)
             {
                 Console.WriteLine("Pole jest puste, nie można przesunąć pionka.");
                 return false;
             }
 
-            CheckerPiece targetPiece = pieces[toRow, toCol];
-
-            // Sprawdź, czy pole docelowe jest zajęte przez inny pionek
-            if (targetPiece != null)
+            // Sprawdź, czy docelowa komórka jest pusta
+            if (pieces[toRow, toCol] != null)
             {
-                Console.WriteLine("2");
+                Console.WriteLine("Docelowa komórka jest zajęta, nie można przesunąć pionka.");
                 return false;
             }
 
-            // Oblicz różnice w wierszach i kolumnach
+            // Sprawdź, czy ruch jest o jedno pole w prawo lub lewo i w górę (dla gracza 1) lub w dół (dla gracza 2)
             int rowDiff = Math.Abs(toRow - fromRow);
             int colDiff = Math.Abs(toCol - fromCol);
 
-            // Sprawdź, czy ruch jest o jedno pole do przodu
             if (rowDiff == 1 && colDiff == 1)
             {
-                // Sprawdź, czy pionek jest królem (może ruszać się w przód i w tył)
-                if (!piece.IsKing)
+                if ((piece.PieceColor == Color.White && toRow < fromRow) ||
+                    (piece.PieceColor == Color.Red && toRow > fromRow))
                 {
-                    // Jeśli nie jest królem, to tylko w przód
-                    forwardDirection = (piece.PieceColor == Color.White) ? -1 : 1;
-                    if (toRow != fromRow + forwardDirection)
-                    {
-                        Console.WriteLine("4");
-                        return false;
-                    }
-                }
-            }
-            // Sprawdź, czy ruch jest skokiem (biciem)
-            else if (rowDiff == 2 && colDiff == 2)
-            {
-                // Sprawdź, czy pole między polem początkowym a docelowym jest zajęte przez przeciwnika
-                int jumpedRow = (fromRow + toRow) / 2;
-                int jumpedCol = (fromCol + toCol) / 2;
-                CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
-
-                if (jumpedPiece == null || jumpedPiece.PieceColor == piece.PieceColor)
-                {
-                    Console.WriteLine("5");
-                    return false;
-                }
-                else
-                {
-                    // Jeśli to jest pierwszy skok w sekwencji, zapisz pozycję startową skoku
-                    if (!isJumpInProgress)
-                    {
-                        isJumpInProgress = true;
-                        jumpStartRow = fromRow;
-                        jumpStartCol = fromCol;
-                    }
-                }
-            }
-            else
-            {
-                //Console.WriteLine("6");
-                return false; // Nieprawidłowy ruch
-            }
-
-            // Jeśli jesteśmy w trakcie skoku, sprawdź, czy ruch jest kontynuacją tego skoku
-            if (isJumpInProgress)
-            {
-                if (fromRow != jumpStartRow || fromCol != jumpStartCol)
-                {
-                    Console.WriteLine("7");
-                    return false; // Musisz kontynuować ten sam skok
+                    Console.WriteLine("Ruch o jedno pole w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
+                    return true;
                 }
             }
 
-            // Sprawdź, czy pole początkowe zawiera pionka
-            if (pieces[fromRow, fromCol] == null)
+            // Sprawdź, czy pionek jest damką
+            if (piece.IsKing)
             {
-                Console.WriteLine("8");
-                return false;
+                // Sprawdź, czy ruch jest o jedno pole w prawo lub lewo i w dół (lub w górę)
+                if (rowDiff == 1 && colDiff == 1)
+                {
+                    Console.WriteLine("Ruch o jedno pole w prawo lub lewo i w dół (lub w górę) jest dozwolony dla damki.");
+                    return true;
+                }
             }
 
-            // Dodaj warunek, który ograniczy ruch tylko do przodu lub do tyłu
-            int forwardRow = fromRow + forwardDirection;
-
-            if (toRow != forwardRow)
-            {
-                Console.WriteLine("9");
-                return false; // Ruch w prawo lub w lewo nie jest dozwolony
-            }
-
-            // Dodaj warunek, który ograniczy ruch tylko do przodu
-            if (forwardDirection == -1 && toRow != fromRow - 1)
-            {
-                Console.WriteLine("10");
-                return false; // Ruch w prawo lub w lewo nie jest dozwolony
-            }
-
-            return true;
+            Console.WriteLine("Ten ruch nie jest dozwolony.");
+            return false;
         }
-
-
 
         public bool IsValidJump(int fromRow, int fromCol, int toRow, int toCol)
         {
-            Console.WriteLine("is valid jump");
+            Console.WriteLine("IsValidJump called");
+            CheckerPiece piece = pieces[fromRow, fromCol];
+
+            if (piece == null)
+            {
+                Console.WriteLine("Pole jest puste, nie można wykonać skoku.");
+                return false;
+            }
+
+            // Sprawdź, czy docelowa komórka jest pusta
+            if (pieces[toRow, toCol] != null)
+            {
+                Console.WriteLine("Docelowa komórka jest zajęta, nie można wykonać skoku.");
+                return false;
+            }
+
+            // Sprawdź, czy pole, na którym jest skakane, zawiera pionka przeciwnika
             int jumpedRow = (fromRow + toRow) / 2;
             int jumpedCol = (fromCol + toCol) / 2;
+            CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
 
-            // Sprawdź, czy pole docelowe jest puste i znajduje się dokładnie o 2 pola po przekątnej od pozycji startowej
-            if (PieceAt(toRow, toCol) == null && Math.Abs(toRow - fromRow) == 2 && Math.Abs(toCol - fromCol) == 2)
+            if (jumpedPiece == null || jumpedPiece.PieceColor == piece.PieceColor)
             {
-                Console.WriteLine("jump");
-                // Sprawdź, czy na polu przeskakiwanym znajduje się pionek przeciwnika
-                CheckerPiece jumpedPiece = PieceAt(jumpedRow, jumpedCol);
-                if (jumpedPiece != null && jumpedPiece.PieceColor != PieceAt(fromRow, fromCol).PieceColor)
+                Console.WriteLine("Nie ma pionka przeciwnika na środkowym polu lub jest to twój własny pionek, nie można wykonać skoku.");
+                return false;
+            }
+
+            // Sprawdź, czy skok jest o dwa pola w prawo lub lewo i w górę (lub w dół) (dla gracza 1) lub o dwa pola w prawo lub lewo i w dół (lub w górę) (dla gracza 2)
+            int rowDiff = Math.Abs(toRow - fromRow);
+            int colDiff = Math.Abs(toCol - fromCol);
+
+            if (rowDiff == 2 && colDiff == 2)
+            {
+                if ((piece.PieceColor == Color.White && toRow < fromRow) ||
+                    (piece.PieceColor == Color.Red && toRow > fromRow))
                 {
-                    Console.WriteLine("jump jump");
-                    return true; // Skok jest dozwolony
+                    Console.WriteLine("Skok o dwa pola w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
+                    return true;
                 }
             }
 
-            return false; // Skok jest niedozwolony
+            // Sprawdź, czy pionek jest damką
+            if (piece.IsKing)
+            {
+                // Sprawdź, czy skok jest o dwa pola w prawo lub lewo i w dół (lub w górę)
+                if (rowDiff == 2 && colDiff == 2)
+                {
+                    Console.WriteLine("Skok o dwa pola w prawo lub lewo i w dół (lub w górę) jest dozwolony dla damki.");
+                    return true;
+                }
+            }
+
+            Console.WriteLine("Ten skok nie jest dozwolony.");
+            return false;
         }
+
+
 
 
 
@@ -277,6 +248,11 @@ namespace Warcaby
         {
             return pieces[row, col];
         }
+        public void RemovePiece(int row, int col)
+        {
+            pieces[row, col] = null;
+        }
+
 
 
 
