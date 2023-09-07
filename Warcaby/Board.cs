@@ -57,7 +57,7 @@ namespace Warcaby
             fromCell.Controls.Clear();
 
             // Stwórz nowy pionek w nowym miejscu
-            pieces[toRow, toCol] = new CheckerPiece(piece.PieceColor, toRow, toCol);
+            pieces[toRow, toCol] = piece;
             CheckerPiece newPiece = pieces[toRow, toCol];
             Panel toCell = gameForm.GetCellByPosition(toCol, toRow);
             toCell.Controls.Add(newPiece);
@@ -70,15 +70,14 @@ namespace Warcaby
                 int jumpedCol = (fromCol + toCol) / 2;
                 Console.WriteLine("przeskoczony pionek: " + jumpedRow + " " + jumpedCol);
                 CheckerPiece jumpedPiece = PieceAt(jumpedRow, jumpedCol);
-                    pieces[jumpedRow, jumpedCol] = null;
-                    Panel jumpedCell = gameForm.GetCellByPosition(jumpedCol, jumpedRow);
-                    jumpedCell.Controls.Remove(jumpedPiece);
-                    jumpedCell.Controls.Clear();
-                    //jumpedPiece.Dispose();
+                pieces[jumpedRow, jumpedCol] = null;
+                Panel jumpedCell = gameForm.GetCellByPosition(jumpedCol, jumpedRow);
+                jumpedCell.Controls.Remove(jumpedPiece);
+                jumpedCell.Controls.Clear();
+                //jumpedPiece.Dispose();
             }
 
-
-            // Awansuj pionek na damkę, jeśli dotrze do końca planszy
+            // Awansuj pionek na damę, jeśli dotrze do końca planszy
             if ((toRow == 0 && newPiece.PieceColor == Color.White) || (toRow == 7 && newPiece.PieceColor == Color.Red))
             {
                 newPiece.IsKing = true;
@@ -93,6 +92,7 @@ namespace Warcaby
             // Przełącz gracza
             gameForm.SwitchPlayer();
         }
+
 
         public bool IsValidMove(int fromRow, int fromCol, int toRow, int toCol)
         {

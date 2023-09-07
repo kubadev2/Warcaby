@@ -42,8 +42,19 @@ namespace Warcaby
                 int y = (this.Height - size) / 2;
 
                 e.Graphics.FillEllipse(brush, x, y, size, size);
+
+                if (IsKing)
+                {
+                    // Utwórz obiekt Pen z grubą linią o wybranym kolorze
+                    Color borderColor = (PieceColor == Color.White) ? Color.Red : Color.White;
+                    using (Pen pen = new Pen(borderColor, 3)) // 3 to grubość linii
+                    {
+                        e.Graphics.DrawEllipse(pen, x, y, size, size);
+                    }
+                }
             }
         }
+
 
         protected override void OnSizeChanged(EventArgs e)
         {
