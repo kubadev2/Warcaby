@@ -58,8 +58,9 @@
             this.btnBackToMenu.Name = "btnBackToMenu";
             this.btnBackToMenu.Size = new System.Drawing.Size(75, 23);
             this.btnBackToMenu.TabIndex = 4;
-            this.btnBackToMenu.Text = "button1";
+            this.btnBackToMenu.Text = "Zakończ grę";
             this.btnBackToMenu.UseVisualStyleBackColor = true;
+            this.btnBackToMenu.Click += new System.EventHandler(this.btnBackToMenu_Click);
             // 
             // GameForm
             // 

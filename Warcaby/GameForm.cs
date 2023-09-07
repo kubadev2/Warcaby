@@ -13,6 +13,7 @@ namespace Warcaby
         private Color defaultCellColor;  // Domyślny kolor tła komórki
         private bool isPlayer1Turn = true; // Zmienna śledząca aktualnego gracza (true - gracz 1, false - gracz 2)
         private string level;
+
         private void PerformBotMove()
         {
             // Jeśli aktualny gracz to czerwony i poziom trudności to "Easy"
@@ -474,7 +475,12 @@ namespace Warcaby
             }
             return null;
         }
-        
 
+        private void btnBackToMenu_Click(object sender, EventArgs e)
+        {
+            MainMenuForm mainMenu = new MainMenuForm();
+            mainMenu.Show();
+            this.Close();
+        }
     }
 }

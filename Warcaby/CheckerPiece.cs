@@ -12,12 +12,21 @@ namespace Warcaby
         public int Row { get; set; }
         public int Col { get; set; }
 
+        private Label kingLabel;
+
         public CheckerPiece(Color color, int row, int col)
         {
             PieceColor = color;
-            IsKing = false;
+            IsKing = false; // Początkowo pionek nie jest damą
             Row = row;
             Col = col;
+
+            // Inicjalizacja etykiety "K" i ukrycie jej na początku
+            kingLabel = new Label();
+            kingLabel.Text = "K";
+            kingLabel.TextAlign = ContentAlignment.MiddleCenter;
+            kingLabel.Visible = false;
+            Controls.Add(kingLabel);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -35,5 +44,21 @@ namespace Warcaby
                 e.Graphics.FillEllipse(brush, x, y, size, size);
             }
         }
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+
+            // Ustaw rozmiar etykiety i jej pozycję na środku pionka
+            kingLabel.Size = new Size(this.Width, this.Height);
+            kingLabel.Location = new Point(0, 0);
+        }
+
+        // Metoda do pokazania/ukrycia litery "K" na pionku
+        public void ShowKingLabel(bool show)
+        {
+            kingLabel.Visible = show;
+        }
     }
+
 }
