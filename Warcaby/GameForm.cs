@@ -11,14 +11,101 @@ namespace Warcaby
         private CheckerPiece selectedPiece = null;
         private Color defaultCellColor;  // Domyślny kolor tła komórki
         private bool isPlayer1Turn = true; // Zmienna śledząca aktualnego gracza (true - gracz 1, false - gracz 2)
+        private string level;
+        private void PerformBotMove()
+        {
+            // Jeśli aktualny gracz to czerwony i poziom trudności to "Easy"
+            if (!isPlayer1Turn && level == "Easy")
+            {
+                // Znajdź wszystkie dostępne ruchy dla czerwonych pionków
+                List<Tuple<int, int, int, int>> availableMoves = FindAllAvailableMoves(Color.Red);
 
+                // Jeśli są dostępne ruchy, wykonaj losowy ruch
+                if (availableMoves.Count > 0)
+                {
+                    Random random = new Random();
+                    int randomIndex = random.Next(availableMoves.Count);
+                    var move = availableMoves[randomIndex];
+
+                    int fromRow = move.Item1;
+                    int fromCol = move.Item2;
+                    int toRow = move.Item3;
+                    int toCol = move.Item4;
+
+                    // Wykonaj ruch
+                    Console.WriteLine(fromRow +" " +fromCol+ " " +toRow+ " " +toCol);
+                    board.MovePieceBot(fromRow, fromCol, toRow, toCol);
+                }
+                else
+                {
+                    // Jeśli nie ma dostępnych ruchów, to czerwoni przegrywają
+                    MessageBox.Show("Czerwoni przegrywają. Koniec gry.");
+                    // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
+                }
+            }
+        }
+        
+
+
+
+        private List<Tuple<int, int, int, int>> FindAllAvailableMoves(Color playerColor)
+        {
+            // Znajdź wszystkie dostępne ruchy dla danego koloru gracza
+            List<Tuple<int, int, int, int>> availableMoves = new List<Tuple<int, int, int, int>>();
+
+            for (int fromRow = 0; fromRow < 8; fromRow++)
+            {
+                for (int fromCol = 0; fromCol < 8; fromCol++)
+                {
+                    CheckerPiece piece = board.PieceAt(fromRow, fromCol);
+
+                    if (piece != null && piece.PieceColor == playerColor)
+                    {
+                        for (int toRow = 0; toRow < 8; toRow++)
+                        {
+                            for (int toCol = 0; toCol < 8; toCol++)
+                            {
+                                if (board.IsValidMove(fromRow, fromCol, toRow, toCol) ||
+                                    board.IsValidJump(fromRow, fromCol, toRow, toCol))
+                                {
+                                    availableMoves.Add(Tuple.Create(fromRow, fromCol, toRow, toCol));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return availableMoves;
+        }
+        public void SwitchPlayer()
+        {
+            isPlayer1Turn = !isPlayer1Turn;
+
+            if (isPlayer1Turn)
+            {
+                lblCurrentPlayer.Text = "Gracz 1";
+            }
+            else
+            {
+                lblCurrentPlayer.Text = "Gracz 2";
+                PerformBotMove();
+            }
+        }
         public GameForm(string difficulty)
         {
             InitializeComponent();
+            board = new Board(this);
+            this.level = difficulty;
+            SetupBoard();
+            Console.WriteLine("GameForm constructor called");
 
             if (difficulty != "Multiplayer")
             {
                 lblCurrentPlayer.Text = "Gra z komputerem: " + difficulty;
+               
+                    
+
             }
             else
             {
@@ -26,9 +113,7 @@ namespace Warcaby
             }
 
             // Utwórz instancję klasy Board i przekaż do niej referencję do tego obiektu GameForm
-            board = new Board(this);
-            SetupBoard();
-            Console.WriteLine("GameForm constructor called");
+            
         }
 
         private void SetupBoard()
@@ -111,7 +196,7 @@ namespace Warcaby
 
 
         //...
-        
+
 
         private void HighlightAvailableMoves()
         {
@@ -365,7 +450,7 @@ namespace Warcaby
             }
         }
 
-        
+
         public Panel GetCellByPosition(int col, int row)
         {
             foreach (Control control in this.Controls)
@@ -381,19 +466,7 @@ namespace Warcaby
             }
             return null;
         }
-        public void SwitchPlayer()
-        {
-            isPlayer1Turn = !isPlayer1Turn;
-
-            if (isPlayer1Turn)
-            {
-                lblCurrentPlayer.Text = "Gracz 1";
-            }
-            else
-            {
-                lblCurrentPlayer.Text = "Gracz 2";
-            }
-        }
+        
 
     }
 }
