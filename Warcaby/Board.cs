@@ -54,6 +54,7 @@ namespace Warcaby
             pieces[fromRow, fromCol] = null;
             Panel fromCell = gameForm.GetCellByPosition(fromCol, fromRow);
             fromCell.Controls.Remove(piece);
+            fromCell.Controls.Clear();
 
             // Stwórz nowy pionek w nowym miejscu
             pieces[toRow, toCol] = new CheckerPiece(piece.PieceColor, toRow, toCol);
@@ -67,15 +68,15 @@ namespace Warcaby
             {
                 int jumpedRow = (fromRow + toRow) / 2;
                 int jumpedCol = (fromCol + toCol) / 2;
-                CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
-                if (jumpedPiece != null)
-                {
+                Console.WriteLine("przeskoczony pionek: " + jumpedRow + " " + jumpedCol);
+                CheckerPiece jumpedPiece = PieceAt(jumpedRow, jumpedCol);
                     pieces[jumpedRow, jumpedCol] = null;
-                    jumpedPiece.Dispose();
                     Panel jumpedCell = gameForm.GetCellByPosition(jumpedCol, jumpedRow);
                     jumpedCell.Controls.Remove(jumpedPiece);
-                }
+                    jumpedCell.Controls.Clear();
+                    //jumpedPiece.Dispose();
             }
+
 
             // Awansuj pionek na damkę, jeśli dotrze do końca planszy
             if ((toRow == 0 && newPiece.PieceColor == Color.White) || (toRow == 7 && newPiece.PieceColor == Color.Red))
@@ -85,11 +86,10 @@ namespace Warcaby
             }
 
             // Odznacz wybrany pionek po wykonaniu ruchu
-            newPiece.BackColor = Color.White;
+            newPiece.BackColor = Color.Black;
 
             // Zakończ bieżący skok (jeśli taki istnieje)
             isJumpInProgress = false;
-
             // Przełącz gracza
             gameForm.SwitchPlayer();
         }
@@ -208,58 +208,7 @@ namespace Warcaby
             pieces[row, col] = new CheckerPiece(pieceColor, row, col);
         }
 
-        public void MovePieceBot(int fromRow, int fromCol, int toRow, int toCol)
-        {
-            CheckerPiece piece = PieceAt(fromRow, fromCol);
+        
 
-            if (piece != null)
-            {
-                Console.WriteLine($"Przenoszenie pionka z ({fromRow}, {fromCol}) na ({toRow}, {toCol})");
-
-                // Usuń istniejący pionek ze starego miejsca
-                RemovePiece(fromCol, fromRow);
-                Console.WriteLine($"Usunięcie pionka z ({fromRow}, {fromCol})");
-
-                // Stwórz nowy pionek w nowym miejscu
-                AddPiece(fromCol, fromRow, Color.Red);
-                Console.WriteLine($"Dodanie nowego pionka na ({toRow}, {toCol})");
-
-                CheckerPiece nowyPionek = PieceAt(toRow, toCol);
-
-                // Usuń pionek przeskakiwany
-                if (Math.Abs(toRow - fromRow) == 2)
-                {
-                    int przeskakiwanyRząd = (fromRow + toRow) / 2;
-                    int przeskakiwanaKolumna = (fromCol + toCol) / 2;
-                    CheckerPiece przeskakiwanyPionek = PieceAt(przeskakiwanyRząd, przeskakiwanaKolumna);
-                    if (przeskakiwanyPionek != null)
-                    {
-                        RemovePiece(przeskakiwanyRząd, przeskakiwanaKolumna);
-                        Console.WriteLine($"Usunięcie przeskakiwanego pionka z ({przeskakiwanyRząd}, {przeskakiwanaKolumna})");
-                    }
-                }
-
-                // Awansuj pionek na damkę, jeśli dotrze do końca planszy
-                if ((toRow == 0 && nowyPionek.PieceColor == Color.White) || (toRow == 7 && nowyPionek.PieceColor == Color.Red))
-                {
-                    nowyPionek.IsKing = true;
-                    nowyPionek.BackColor = Color.Gold;
-                    Console.WriteLine($"Awans pionka na damkę na ({toRow}, {toCol})");
-                }
-
-                // Usuń pionek z jego poprzedniej lokalizacji wizualnej
-                Panel fromCell = gameForm.GetCellByPosition(fromCol, fromRow);
-                fromCell.Controls.Remove(piece);
-                Console.WriteLine($"Usunięcie pionka z komórki ({fromCol}, {fromRow})");
-
-                // Dodaj nowy pionek do jego nowej lokalizacji wizualnej
-                Panel toCell = gameForm.GetCellByPosition(toCol, toRow);
-                toCell.Controls.Add(nowyPionek);
-                Console.WriteLine($"Dodanie nowego pionka do komórki ({toCol}, {toRow})");
-
-                // Przełącz gracza
-                gameForm.SwitchPlayer();
-            }
-        }
     }
 }

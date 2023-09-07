@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Warcaby
@@ -32,9 +33,18 @@ namespace Warcaby
                     int toRow = move.Item3;
                     int toCol = move.Item4;
 
+                    CheckerPiece botPiece = board.PieceAt(fromRow, fromCol);
+
                     // Wykonaj ruch
                     Console.WriteLine(fromRow +" " +fromCol+ " " +toRow+ " " +toCol);
-                    board.MovePieceBot(fromRow, fromCol, toRow, toCol);
+                    board.MovePiece(fromRow, fromCol, toRow, toCol);
+
+                    GetCellByPosition(toCol, toRow).Controls.Add(botPiece);
+                    botPiece.Dock = DockStyle.Fill;
+                    botPiece.Row = toRow; // Aktualizacja pozycji pionka
+                    botPiece.Col = toCol;
+
+                    Console.WriteLine("zbijający powinien stać na" + toRow + " " + toCol);
                 }
                 else
                 {
@@ -381,13 +391,11 @@ namespace Warcaby
                         int jumpedCol = (fromCol + toCol) / 2;
                         CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
                         Console.WriteLine("usuwamy with cell click: " + jumpedRow + " " + jumpedCol);
-                        if (jumpedPiece != null)
-                        {
                             Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
                             jumpedCell.Controls.Remove(jumpedPiece);
-                            board.RemovePiece(jumpedRow, jumpedCol); // Usuń pionka z planszy
-                            jumpedCell.Invalidate(); // Odśwież panel, aby usunąć pionka
-                        }
+                        jumpedCell.Controls.Clear();
+                        //board.RemovePiece(jumpedRow, jumpedCol); // Usuń pionka z planszy
+                      
 
                         if (toRow == 0 && selectedPiece.PieceColor == Color.White)
                         {
