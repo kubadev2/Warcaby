@@ -281,7 +281,7 @@ namespace Warcaby
             pieces[row, col] = new CheckerPiece(pieceColor, row, col);
         }
 
-        
+
 
     }
 }

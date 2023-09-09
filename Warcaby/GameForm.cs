@@ -511,7 +511,7 @@ namespace Warcaby
                         selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
                         selectedPiece.Col = toCol;
 
-                        board.MovePiece(fromRow, fromCol, toRow, toCol);
+                       
 
                         int jumpedRow = (fromRow + toRow) / 2;
                         int jumpedCol = (fromCol + toCol) / 2;
@@ -523,7 +523,7 @@ namespace Warcaby
                             jumpedCell.Controls.Remove(jumpedPiece);
                             jumpedCell.Controls.Clear();
                         }
-
+                        board.MovePiece(fromRow, fromCol, toRow, toCol);
                         if (toRow == 0 && selectedPiece.PieceColor == Color.White)
                         {
                             selectedPiece.IsKing = true;
