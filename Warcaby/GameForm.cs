@@ -37,7 +37,7 @@ namespace Warcaby
                     CheckerPiece botPiece = board.PieceAt(fromRow, fromCol);
 
                     // Wykonaj ruch
-                    Console.WriteLine(fromRow +" " +fromCol+ " " +toRow+ " " +toCol);
+                    Console.WriteLine(fromRow + " " + fromCol + " " + toRow + " " + toCol);
                     board.MovePiece(fromRow, fromCol, toRow, toCol);
 
                     GetCellByPosition(toCol, toRow).Controls.Add(botPiece);
@@ -54,7 +54,7 @@ namespace Warcaby
                     // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
                 }
             }
-            else if(!isPlayer1Turn && level == "Hard")
+            else if (!isPlayer1Turn && level == "Hard")
             {
                 // Znajdź wszystkie dostępne ruchy dla czerwonych pionków
                 List<Tuple<int, int, int, int>> availableMoves = FindAllAvailableMoves(Color.Red);
@@ -260,8 +260,8 @@ namespace Warcaby
             if (difficulty != "Multiplayer")
             {
                 lblCurrentPlayer.Text = "Gra z komputerem: " + difficulty;
-               
-                    
+
+
 
             }
             else
@@ -270,7 +270,7 @@ namespace Warcaby
             }
 
             // Utwórz instancję klasy Board i przekaż do niej referencję do tego obiektu GameForm
-            
+
         }
 
         private void SetupBoard()
@@ -424,7 +424,7 @@ namespace Warcaby
                         HighlightAvailableMoves();
                     }
                 }
-                
+
             }
         }
 
@@ -451,8 +451,9 @@ namespace Warcaby
 
                     CheckerPiece clickedPiece = board.PieceAt(clickedRow, clickedCol);
 
+
                     // Następnie sprawdź bicia
-                    if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) >= 2)
+                    if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) == 2)
                     {
                         board.MovePiece(fromRow, fromCol, toRow, toCol);
                         if (toRow == 0 && selectedPiece.PieceColor == Color.White)
@@ -469,23 +470,7 @@ namespace Warcaby
                     }
 
                     // Na koniec sprawdź ruchy zwykłych pionków
-                    if (selectedPiece.IsKing && board.IsValidMoveKing(fromRow, fromCol, toRow, toCol))
-                    {
-                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
-                        if (fromCell != clickedCell)
-                        {
-                            board.MovePiece(fromRow, fromCol, toRow, toCol);
-                        }
-
-                        selectedPiece.BackColor = defaultCellColor;
-                        selectedPiece = null;
-
-                        RefreshAvailableMoves();
-                        return; // Zakończ obsługę kliknięcia
-                    }
-
-                    if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, toRow, toCol) &&
-                        Math.Abs(toRow - fromRow) == 1)
+                    if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, toRow, toCol))
                     {
                         Panel fromCell = GetCellByPosition(fromCol, fromRow);
                         if (fromCell != clickedCell)
@@ -505,7 +490,6 @@ namespace Warcaby
                 }
             }
         }
-
 
 
 

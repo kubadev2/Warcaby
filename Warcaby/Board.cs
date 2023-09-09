@@ -50,7 +50,7 @@ namespace Warcaby
         {
             CheckerPiece piece = pieces[fromRow, fromCol];
             if (piece.IsKing)
-            { 
+            {
                 MoveKing(fromRow, fromCol, toRow, toCol);
             }
             else
@@ -102,51 +102,6 @@ namespace Warcaby
                 gameForm.SwitchPlayer();
             }
         }
-        public void MoveKing(int fromRow, int fromCol, int toRow, int toCol)
-        {
-            CheckerPiece piece = pieces[fromRow, fromCol];
-
-            if (piece == null)
-            {
-                Console.WriteLine("Pole jest puste, nie można przesunąć pionka.");
-                return;
-            }
-
-            if (pieces[toRow, toCol] != null)
-            {
-                Console.WriteLine("Docelowa komórka jest zajęta, nie można przesunąć pionka.");
-                return;
-            }
-
-            if (!IsValidMoveKing(fromRow, fromCol, toRow, toCol))
-            {
-                Console.WriteLine("Ten ruch nie jest dozwolony.");
-                return;
-            }
-
-            // Usuń istniejący pionek ze starego miejsca
-            pieces[fromRow, fromCol] = null;
-            Panel fromCell = gameForm.GetCellByPosition(fromCol, fromRow);
-            fromCell.Controls.Remove(piece);
-            fromCell.Controls.Clear();
-
-            // Stwórz nowy pionek w nowym miejscu
-            pieces[toRow, toCol] = piece;
-            CheckerPiece newPiece = pieces[toRow, toCol];
-            Panel toCell = gameForm.GetCellByPosition(toCol, toRow);
-            toCell.Controls.Add(newPiece);
-            newPiece.Dock = DockStyle.Fill;
-            newPiece.Row = toRow;
-            newPiece.Col = toCol;
-
-            // Odznacz wybrany pionek po wykonaniu ruchu
-            newPiece.BackColor = Color.Black;
-
-            // Przełącz gracza
-            gameForm.SwitchPlayer();
-        }
-
-
 
         public bool IsValidMove(int fromRow, int fromCol, int toRow, int toCol)
         {
@@ -171,18 +126,18 @@ namespace Warcaby
             int rowDiff = Math.Abs(toRow - fromRow);
             int colDiff = Math.Abs(toCol - fromCol);
 
-          
-                // Sprawdź, czy ruch jest dozwolony dla pionka (nie damy)
-                if (rowDiff == 1 && colDiff == 1)
+
+            // Sprawdź, czy ruch jest dozwolony dla pionka (nie damy)
+            if (rowDiff == 1 && colDiff == 1)
+            {
+                if ((piece.PieceColor == Color.White && toRow < fromRow) ||
+                    (piece.PieceColor == Color.Red && toRow > fromRow))
                 {
-                    if ((piece.PieceColor == Color.White && toRow < fromRow) ||
-                        (piece.PieceColor == Color.Red && toRow > fromRow))
-                    {
-                        Console.WriteLine("Ruch o jedno pole w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
-                        return true;
-                    }
+                    Console.WriteLine("Ruch o jedno pole w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
+                    return true;
                 }
-           
+            }
+
 
             Console.WriteLine("Ten ruch nie jest dozwolony.");
             return false;
@@ -203,32 +158,62 @@ namespace Warcaby
                 Console.WriteLine("Docelowa komórka jest zajęta, nie można wykonać skoku.");
                 return false;
             }
-            if(piece.IsKing)
+            if (piece.IsKing)
             {
                 return IsValidJumpKing(fromRow, fromCol, toRow, toCol);
-            }    
+            }
 
             int rowDiff = Math.Abs(toRow - fromRow);
             int colDiff = Math.Abs(toCol - fromCol);
 
-            
-                // Sprawdź, czy skok jest dozwolony dla pionka (nie damy)
-                if (rowDiff == 2 && colDiff == 2)
-                {
-                    int jumpedRow = (fromRow + toRow) / 2;
-                    int jumpedCol = (fromCol + toCol) / 2;
-                    CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
 
-                    if (jumpedPiece != null && jumpedPiece.PieceColor != piece.PieceColor)
-                    {
-                        Console.WriteLine("Skok o dwa pola w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
-                        return true;
-                    }
+            // Sprawdź, czy skok jest dozwolony dla pionka (nie damy)
+            if (rowDiff == 2 && colDiff == 2)
+            {
+                int jumpedRow = (fromRow + toRow) / 2;
+                int jumpedCol = (fromCol + toCol) / 2;
+                CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
+
+                if (jumpedPiece != null && jumpedPiece.PieceColor != piece.PieceColor)
+                {
+                    Console.WriteLine("Skok o dwa pola w prawo lub lewo i w górę (lub w dół) jest dozwolony.");
+                    return true;
                 }
+            }
 
             Console.WriteLine("Ten skok nie jest dozwolony.");
             return false;
         }
+        public void MoveKing(int fromRow, int fromCol, int toRow, int toCol)
+        {
+            CheckerPiece piece = pieces[fromRow, fromCol];
+
+            if (IsValidMoveKing(fromRow, fromCol, toRow, toCol))
+            {
+                // Usuń istniejący pionek ze starego miejsca
+                pieces[fromRow, fromCol] = null;
+                Panel fromCell = gameForm.GetCellByPosition(fromCol, fromRow);
+                fromCell.Controls.Remove(piece);
+                fromCell.Controls.Clear();
+
+                // Stwórz nowy pionek w nowym miejscu
+                pieces[toRow, toCol] = piece;
+                CheckerPiece newPiece = pieces[toRow, toCol];
+                Panel toCell = gameForm.GetCellByPosition(toCol, toRow);
+                toCell.Controls.Add(newPiece);
+                //newPiece.Location = new Point(toCol * 60, toRow * 60);
+                newPiece.Dock = DockStyle.Fill;
+                newPiece.Row = toRow; // Aktualizacja pozycji pionka
+                newPiece.Col = toCol;
+
+
+                // Zakończ bieżący skok (jeśli taki istnieje)
+                isJumpInProgress = false;
+            }
+            // Przełącz gracza
+            gameForm.SwitchPlayer();
+        }
+
         public bool IsValidMoveKing(int fromRow, int fromCol, int toRow, int toCol)
         {
             CheckerPiece piece = pieces[fromRow, fromCol];
@@ -248,54 +233,75 @@ namespace Warcaby
             int rowDiff = Math.Abs(toRow - fromRow);
             int colDiff = Math.Abs(toCol - fromCol);
 
-            // Sprawdź, czy ruch jest po przekątnej
-            if (rowDiff == colDiff)
+            // Sprawdź, czy ruch jest dozwolony dla damy
+            if (rowDiff == colDiff && rowDiff > 0)
             {
-                // Sprawdź, czy ruch jest dozwolony (bez przeskakiwania)
-                int rowDirection = Math.Sign(toRow - fromRow);
-                int colDirection = Math.Sign(toCol - fromCol);
+                // Sprawdź, czy na trasie ruchu nie ma innych pionków
+                int stepRow = (toRow - fromRow) / rowDiff;
+                int stepCol = (toCol - fromCol) / colDiff;
 
-                int currentRow = fromRow + rowDirection;
-                int currentCol = fromCol + colDirection;
-
-                while (currentRow != toRow && currentCol != toCol)
+                for (int i = 1; i < rowDiff; i++)
                 {
-                    CheckerPiece currentPiece = pieces[currentRow, currentCol];
-                    if (currentPiece != null)
+                    int checkRow = fromRow + i * stepRow;
+                    int checkCol = fromCol + i * stepCol;
+
+                    if (pieces[checkRow, checkCol] != null)
                     {
-                        // Na drodze ruchu stoją inne pionki
-                        Console.WriteLine("Nie można przeskakiwać swoich pionków.");
+                        Console.WriteLine("Na trasie ruchu jest inny pionek, nie można przesunąć damy.");
                         return false;
                     }
-
-                    currentRow += rowDirection;
-                    currentCol += colDirection;
                 }
 
-                Console.WriteLine("Ruch damy po przekątnej jest dozwolony.");
+                // Zakończ bieżący skok (jeśli taki istnieje)
+                isJumpInProgress = false;
                 return true;
             }
 
-            Console.WriteLine("Ten ruch nie jest dozwolony.");
+            Console.WriteLine("Ten ruch nie jest dozwolony dla damy.");
             return false;
         }
 
-       public bool IsValidJumpKing(int fromRow, int fromCol, int toRow, int toCol)
+        public bool IsValidJumpKing(int fromRow, int fromCol, int toRow, int toCol)
         {
-            return false;
-        }
+            CheckerPiece piece = pieces[fromRow, fromCol];
 
+            if (piece == null)
+            {
+                Console.WriteLine("Pole jest puste, nie można wykonać skoku.");
+                return false;
+            }
 
+            if (pieces[toRow, toCol] != null)
+            {
+                Console.WriteLine("Docelowa komórka jest zajęta, nie można wykonać skoku.");
+                return false;
+            }
 
+            int rowDiff = Math.Abs(toRow - fromRow);
+            int colDiff = Math.Abs(toCol - fromCol);
 
+            // Sprawdź, czy skok jest dozwolony dla damy
+            if (rowDiff == colDiff && rowDiff == 2)
+            {
+                int jumpedRow = (fromRow + toRow) / 2;
+                int jumpedCol = (fromCol + toCol) / 2;
+                CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
 
-        public bool IsInBoard(int jumpRow, int jumpCol)
-        {
-            if(jumpRow >=0 && jumpRow <=7)
-                if(jumpCol >=0 && jumpCol <=7)
+                if (jumpedPiece != null && jumpedPiece.PieceColor != piece.PieceColor)
+                {
                     return true;
+                }
+            }
+
+            Console.WriteLine("Ten skok nie jest dozwolony dla damy.");
             return false;
         }
+
+
+
+
+
+
 
         public Color GetCellColor(int row, int col)
         {
@@ -311,10 +317,12 @@ namespace Warcaby
         {
             pieces[row, col] = null;
         }
-
-        public void AddPiece(int row, int col, Color pieceColor)
+        private void ClearPanel(int row, int col)
         {
-            pieces[row, col] = new CheckerPiece(pieceColor, row, col);
+            RemovePiece(row, col);
+            Panel panel = gameForm.GetCellByPosition(col, row);
+            panel.Controls.Remove(PieceAt(row, col));
+            panel.Controls.Clear();
         }
 
 
