@@ -206,13 +206,37 @@ namespace Warcaby
                 newPiece.Row = toRow; // Aktualizacja pozycji pionka
                 newPiece.Col = toCol;
 
+                // Usuń pionki przeskakiwane
+                int rowDiff = Math.Abs(toRow - fromRow);
+                int colDiff = Math.Abs(toCol - fromCol);
+
+                int stepRow = (toRow - fromRow) / rowDiff;
+                int stepCol = (toCol - fromCol) / colDiff;
+
+                for (int i = 1; i < rowDiff; i++)
+                {
+                    int checkRow = fromRow + i * stepRow;
+                    int checkCol = fromCol + i * stepCol;
+                    CheckerPiece jumpedPiece = PieceAt(checkRow, checkCol);
+
+                    if (jumpedPiece != null)
+                    {
+                        pieces[checkRow, checkCol] = null;
+                        Panel jumpedCell = gameForm.GetCellByPosition(checkCol, checkRow);
+                        jumpedCell.Controls.Remove(jumpedPiece);
+                        jumpedCell.Controls.Clear();
+                        //jumpedPiece.Dispose();
+                    }
+                }
 
                 // Zakończ bieżący skok (jeśli taki istnieje)
                 isJumpInProgress = false;
             }
+
             // Przełącz gracza
             gameForm.SwitchPlayer();
         }
+
 
         public bool IsValidMoveKing(int fromRow, int fromCol, int toRow, int toCol)
         {
@@ -247,8 +271,8 @@ namespace Warcaby
 
                     if (pieces[checkRow, checkCol] != null)
                     {
-                        Console.WriteLine("Na trasie ruchu jest inny pionek, nie można przesunąć damy.");
-                        return false;
+                        Console.WriteLine("Na trasie ruchu jest inny pionek, sprawdzamy czy możemy usunąć.");
+                        return IsValidJump(fromRow, fromCol, toRow, toCol);
                     }
                 }
 
@@ -281,14 +305,36 @@ namespace Warcaby
             int colDiff = Math.Abs(toCol - fromCol);
 
             // Sprawdź, czy skok jest dozwolony dla damy
-            if (rowDiff == colDiff && rowDiff == 2)
+            if (rowDiff == colDiff && rowDiff > 0)
             {
-                int jumpedRow = (fromRow + toRow) / 2;
-                int jumpedCol = (fromCol + toCol) / 2;
-                CheckerPiece jumpedPiece = pieces[jumpedRow, jumpedCol];
+                int stepRow = (toRow - fromRow) / rowDiff;
+                int stepCol = (toCol - fromCol) / colDiff;
 
-                if (jumpedPiece != null && jumpedPiece.PieceColor != piece.PieceColor)
+                int numberOfPiecesBetween = 0; // Liczba pionków na drodze skoku
+
+                for (int i = 1; i < rowDiff; i++)
                 {
+                    int checkRow = fromRow + i * stepRow;
+                    int checkCol = fromCol + i * stepCol;
+                    CheckerPiece jumpedPiece = pieces[checkRow, checkCol];
+
+                    if (jumpedPiece != null)
+                    {
+                        numberOfPiecesBetween++;
+
+                        if (jumpedPiece.PieceColor == piece.PieceColor)
+                        {
+                            // Nie można skakać przez własne pionki
+                            Console.WriteLine("Nie można skakać przez własne pionki.");
+                            return false;
+                        }
+                    }
+                }
+
+                if (numberOfPiecesBetween <= 1)
+                {
+                    // Tutaj zmieniamy kolor na czerwony
+                    Console.WriteLine("Możesz zbijać.");
                     return true;
                 }
             }
@@ -296,6 +342,9 @@ namespace Warcaby
             Console.WriteLine("Ten skok nie jest dozwolony dla damy.");
             return false;
         }
+
+
+
 
 
 
@@ -316,13 +365,6 @@ namespace Warcaby
         public void RemovePiece(int row, int col)
         {
             pieces[row, col] = null;
-        }
-        private void ClearPanel(int row, int col)
-        {
-            RemovePiece(row, col);
-            Panel panel = gameForm.GetCellByPosition(col, row);
-            panel.Controls.Remove(PieceAt(row, col));
-            panel.Controls.Clear();
         }
 
 
