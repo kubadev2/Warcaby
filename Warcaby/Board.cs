@@ -280,7 +280,7 @@ namespace Warcaby
             return false;
         }
 
-        public bool IsValidJumpKing(int fromRow, int fromCol, int toRow, int toCol)
+       public bool IsValidJumpKing(int fromRow, int fromCol, int toRow, int toCol)
         {
             return false;
         }
@@ -289,8 +289,7 @@ namespace Warcaby
 
 
 
-
-        private bool IsInBoard(int jumpRow, int jumpCol)
+        public bool IsInBoard(int jumpRow, int jumpCol)
         {
             if(jumpRow >=0 && jumpRow <=7)
                 if(jumpCol >=0 && jumpCol <=7)
