@@ -103,9 +103,50 @@ namespace Warcaby
             }
         }
         public void MoveKing(int fromRow, int fromCol, int toRow, int toCol)
-        { 
+        {
+            CheckerPiece piece = pieces[fromRow, fromCol];
 
+            if (piece == null)
+            {
+                Console.WriteLine("Pole jest puste, nie można przesunąć pionka.");
+                return;
+            }
+
+            if (pieces[toRow, toCol] != null)
+            {
+                Console.WriteLine("Docelowa komórka jest zajęta, nie można przesunąć pionka.");
+                return;
+            }
+
+            if (!IsValidMoveKing(fromRow, fromCol, toRow, toCol))
+            {
+                Console.WriteLine("Ten ruch nie jest dozwolony.");
+                return;
+            }
+
+            // Usuń istniejący pionek ze starego miejsca
+            pieces[fromRow, fromCol] = null;
+            Panel fromCell = gameForm.GetCellByPosition(fromCol, fromRow);
+            fromCell.Controls.Remove(piece);
+            fromCell.Controls.Clear();
+
+            // Stwórz nowy pionek w nowym miejscu
+            pieces[toRow, toCol] = piece;
+            CheckerPiece newPiece = pieces[toRow, toCol];
+            Panel toCell = gameForm.GetCellByPosition(toCol, toRow);
+            toCell.Controls.Add(newPiece);
+            newPiece.Dock = DockStyle.Fill;
+            newPiece.Row = toRow;
+            newPiece.Col = toCol;
+
+            // Odznacz wybrany pionek po wykonaniu ruchu
+            newPiece.BackColor = Color.Black;
+
+            // Przełącz gracza
+            gameForm.SwitchPlayer();
         }
+
+
 
         public bool IsValidMove(int fromRow, int fromCol, int toRow, int toCol)
         {
@@ -190,8 +231,55 @@ namespace Warcaby
         }
         public bool IsValidMoveKing(int fromRow, int fromCol, int toRow, int toCol)
         {
+            CheckerPiece piece = pieces[fromRow, fromCol];
+
+            if (piece == null)
+            {
+                Console.WriteLine("Pole jest puste, nie można przesunąć pionka.");
+                return false;
+            }
+
+            if (pieces[toRow, toCol] != null)
+            {
+                Console.WriteLine("Docelowa komórka jest zajęta, nie można przesunąć pionka.");
+                return false;
+            }
+
+            int rowDiff = Math.Abs(toRow - fromRow);
+            int colDiff = Math.Abs(toCol - fromCol);
+
+            // Sprawdź, czy ruch jest po przekątnej
+            if (rowDiff == colDiff)
+            {
+                // Sprawdź, czy ruch jest dozwolony (bez przeskakiwania)
+                int rowDirection = Math.Sign(toRow - fromRow);
+                int colDirection = Math.Sign(toCol - fromCol);
+
+                int currentRow = fromRow + rowDirection;
+                int currentCol = fromCol + colDirection;
+
+                while (currentRow != toRow && currentCol != toCol)
+                {
+                    CheckerPiece currentPiece = pieces[currentRow, currentCol];
+                    if (currentPiece != null)
+                    {
+                        // Na drodze ruchu stoją inne pionki
+                        Console.WriteLine("Nie można przeskakiwać swoich pionków.");
+                        return false;
+                    }
+
+                    currentRow += rowDirection;
+                    currentCol += colDirection;
+                }
+
+                Console.WriteLine("Ruch damy po przekątnej jest dozwolony.");
+                return true;
+            }
+
+            Console.WriteLine("Ten ruch nie jest dozwolony.");
             return false;
         }
+
         public bool IsValidJumpKing(int fromRow, int fromCol, int toRow, int toCol)
         {
             return false;
@@ -201,6 +289,14 @@ namespace Warcaby
 
 
 
+
+        private bool IsInBoard(int jumpRow, int jumpCol)
+        {
+            if(jumpRow >=0 && jumpRow <=7)
+                if(jumpCol >=0 && jumpCol <=7)
+                    return true;
+            return false;
+        }
 
         public Color GetCellColor(int row, int col)
         {

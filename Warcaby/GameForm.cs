@@ -450,10 +450,9 @@ namespace Warcaby
                     int toCol = clickedCol;
 
                     CheckerPiece clickedPiece = board.PieceAt(clickedRow, clickedCol);
-                  
 
                     // Następnie sprawdź bicia
-                    if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) == 2)
+                    if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) >= 2)
                     {
                         board.MovePiece(fromRow, fromCol, toRow, toCol);
                         if (toRow == 0 && selectedPiece.PieceColor == Color.White)
@@ -470,6 +469,21 @@ namespace Warcaby
                     }
 
                     // Na koniec sprawdź ruchy zwykłych pionków
+                    if (selectedPiece.IsKing && board.IsValidMoveKing(fromRow, fromCol, toRow, toCol))
+                    {
+                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
+                        if (fromCell != clickedCell)
+                        {
+                            board.MovePiece(fromRow, fromCol, toRow, toCol);
+                        }
+
+                        selectedPiece.BackColor = defaultCellColor;
+                        selectedPiece = null;
+
+                        RefreshAvailableMoves();
+                        return; // Zakończ obsługę kliknięcia
+                    }
+
                     if (board.IsValidMove(selectedPiece.Row, selectedPiece.Col, toRow, toCol) &&
                         Math.Abs(toRow - fromRow) == 1)
                     {
@@ -491,6 +505,7 @@ namespace Warcaby
                 }
             }
         }
+
 
 
 
