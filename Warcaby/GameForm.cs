@@ -450,79 +450,11 @@ namespace Warcaby
                     int toCol = clickedCol;
 
                     CheckerPiece clickedPiece = board.PieceAt(clickedRow, clickedCol);
-
-                    // Sprawdź najpierw ruchy damy
-                    if (selectedPiece.IsKing && (Math.Abs(toRow - fromRow) > 1))
-                    {
-                        int rowDirection = (toRow - fromRow) / Math.Abs(toRow - fromRow);
-                        int colDirection = (toCol - fromCol) / Math.Abs(toCol - fromCol);
-
-                        int currentRow = fromRow + rowDirection;
-                        int currentCol = fromCol + colDirection;
-
-                        while (currentRow != toRow && currentCol != toCol)
-                        {
-                            int jumpedRow = (fromRow + currentRow) / 2;
-                            int jumpedCol = (fromCol + currentCol) / 2;
-                            CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
-
-                            if (jumpedPiece != null)
-                            {
-                                Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
-                                jumpedCell.Controls.Remove(jumpedPiece);
-                                jumpedCell.Controls.Clear();
-                                board.RemovePiece(jumpedRow, jumpedCol);
-                            }
-
-                            currentRow += rowDirection;
-                            currentCol += colDirection;
-                        }
-
-                        // Obsłuż ruch damy
-                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
-                        fromCell.Controls.Remove(selectedPiece);
-                        clickedCell.Controls.Add(selectedPiece);
-                        selectedPiece.Dock = DockStyle.Fill;
-                        selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
-                        selectedPiece.Col = toCol;
-
-                        board.MovePiece(fromRow, fromCol, toRow, toCol);
-
-                        if (toRow == 0 && selectedPiece.PieceColor == Color.White)
-                        {
-                            selectedPiece.IsKing = true;
-                            selectedPiece.BackColor = Color.Gold;
-                        }
-
-                        selectedPiece.BackColor = defaultCellColor;
-                        selectedPiece = null;
-
-                        RefreshAvailableMoves();
-                        return; // Zakończ obsługę kliknięcia
-                    }
+                  
 
                     // Następnie sprawdź bicia
                     if (board.IsValidJump(fromRow, fromCol, toRow, toCol) && Math.Abs(toRow - fromRow) == 2)
                     {
-                        Panel fromCell = GetCellByPosition(fromCol, fromRow);
-                        fromCell.Controls.Remove(selectedPiece);
-                        clickedCell.Controls.Add(selectedPiece);
-                        selectedPiece.Dock = DockStyle.Fill;
-                        selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
-                        selectedPiece.Col = toCol;
-
-                       
-
-                        int jumpedRow = (fromRow + toRow) / 2;
-                        int jumpedCol = (fromCol + toCol) / 2;
-                        CheckerPiece jumpedPiece = board.PieceAt(jumpedRow, jumpedCol);
-
-                        if (jumpedPiece != null)
-                        {
-                            Panel jumpedCell = GetCellByPosition(jumpedCol, jumpedRow);
-                            jumpedCell.Controls.Remove(jumpedPiece);
-                            jumpedCell.Controls.Clear();
-                        }
                         board.MovePiece(fromRow, fromCol, toRow, toCol);
                         if (toRow == 0 && selectedPiece.PieceColor == Color.White)
                         {
@@ -542,14 +474,6 @@ namespace Warcaby
                         Math.Abs(toRow - fromRow) == 1)
                     {
                         Panel fromCell = GetCellByPosition(fromCol, fromRow);
-                        clickedCell.Controls.Add(selectedPiece);
-                        fromCell.Controls.Remove(selectedPiece);
-
-                        selectedPiece.Row = toRow; // Aktualizacja pozycji pionka
-                        selectedPiece.Col = toCol;
-
-                        selectedPiece.Dock = DockStyle.Fill;
-
                         if (fromCell != clickedCell)
                         {
                             board.MovePiece(fromRow, fromCol, toRow, toCol);
