@@ -19,8 +19,8 @@ namespace Warcaby
 
         private void btnVsComputer_Click(object sender, EventArgs e)
         {
-            DifficultyForm difficultyForm = new DifficultyForm();
-            difficultyForm.Show();
+            GameForm gameForm = new GameForm("Easy");
+            gameForm.Show();
             this.Hide();
         }
 

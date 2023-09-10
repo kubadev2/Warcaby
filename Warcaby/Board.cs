@@ -348,9 +348,14 @@ namespace Warcaby
 
 
 
+        public Board Copy()
+        {
+            Board copy = new Board(this.gameForm);
 
+            // Skopiuj stan planszy, pionki itp. tutaj
 
-
+            return copy;
+        }
 
         public Color GetCellColor(int row, int col)
         {

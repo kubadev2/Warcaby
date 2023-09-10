@@ -25,6 +25,7 @@
             this.lblCurrentPlayer = new System.Windows.Forms.Label();
             this.lblMoveCount = new System.Windows.Forms.Label();
             this.btnBackToMenu = new System.Windows.Forms.Button();
+            this.lblCounter = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // boardTable
@@ -62,11 +63,22 @@
             this.btnBackToMenu.UseVisualStyleBackColor = true;
             this.btnBackToMenu.Click += new System.EventHandler(this.btnBackToMenu_Click);
             // 
+            // lblCounter
+            // 
+            this.lblCounter.AutoSize = true;
+            this.lblCounter.Location = new System.Drawing.Point(1002, 496);
+            this.lblCounter.Name = "lblCounter";
+            this.lblCounter.Size = new System.Drawing.Size(35, 13);
+            this.lblCounter.TabIndex = 5;
+            this.lblCounter.Text = "label1";
+            this.lblCounter.Click += new System.EventHandler(this.label1_Click);
+            // 
             // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1125, 652);
+            this.Controls.Add(this.lblCounter);
             this.Controls.Add(this.btnBackToMenu);
             this.Controls.Add(this.lblMoveCount);
             this.Controls.Add(this.lblCurrentPlayer);
@@ -79,5 +91,6 @@
         private System.Windows.Forms.Label lblCurrentPlayer;
         private System.Windows.Forms.Label lblMoveCount;
         private System.Windows.Forms.Button btnBackToMenu;
+        private System.Windows.Forms.Label lblCounter;
     }
 }

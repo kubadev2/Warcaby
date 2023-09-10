@@ -13,6 +13,54 @@ namespace Warcaby
         private Color defaultCellColor;  // Domyślny kolor tła komórki
         private bool isPlayer1Turn = true; // Zmienna śledząca aktualnego gracza (true - gracz 1, false - gracz 2)
         private string level;
+        private int moveCounter = 0;
+        private string player1Name;
+        private string player2Name;
+        private void StartGame()
+        {
+            PlayerNameForm playerNameForm = new PlayerNameForm();
+
+            if (level == "Multiplayer")
+            {
+                // Wprowadź imiona dwóch graczy
+                if (playerNameForm.ShowDialog() == DialogResult.OK)
+                {
+                    player1Name = playerNameForm.PlayerName;
+                    playerNameForm = new PlayerNameForm(); // Utwórz nową instancję dla drugiego gracza
+                    if (playerNameForm.ShowDialog() == DialogResult.OK)
+                    {
+                        player2Name = playerNameForm.PlayerName;
+                    }
+                }
+            }
+            else
+            {
+                // Wprowadź nazwę jednego gracza w trybie dla jednego gracza
+                if (playerNameForm.ShowDialog() == DialogResult.OK)
+                {
+                    player1Name = playerNameForm.PlayerName;
+                    player2Name = "Bot";
+                }
+            }
+
+            UpdateCurrentPlayerLabel();
+
+            // Rozpocznij grę
+        }
+
+        private void UpdateCurrentPlayerLabel()
+        {
+            if (isPlayer1Turn)
+            {
+                moveCounter++;
+                lblCurrentPlayer.Text = "Gracz 1: " + player1Name;
+            }
+            else
+            {
+                lblCurrentPlayer.Text = "Gracz 2: " + player2Name;
+                PerformBotMove();
+            }
+        }
 
         private void PerformBotMove()
         {
@@ -82,74 +130,7 @@ namespace Warcaby
                     // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
                 }
             }
-            else if (!isPlayer1Turn && level == "Hard")
-            {
-                // Znajdź wszystkie dostępne ruchy dla czerwonych pionków
-                List<Tuple<int, int, int, int>> availableMoves = FindAllAvailableMoves(Color.Red);
-
-                // Znajdź wszystkie dostępne bicia dla czerwonych pionków
-                List<Tuple<int, int, int, int>> availableJumps = FindAllAvailableJumps(Color.Red);
-
-                // Jeśli są dostępne bicia, wykonaj losowe bicie
-                if (availableJumps.Count > 0)
-                {
-                    Random random = new Random();
-                    int randomIndex = random.Next(availableJumps.Count);
-                    var jump = availableJumps[randomIndex];
-
-                    int fromRow = jump.Item1;
-                    int fromCol = jump.Item2;
-                    int toRow = jump.Item3;
-                    int toCol = jump.Item4;
-
-                    CheckerPiece botPiece = board.PieceAt(fromRow, fromCol);
-
-                    // Wykonaj bicie
-                    Console.WriteLine(fromRow + " " + fromCol + " " + toRow + " " + toCol);
-                    board.MovePiece(fromRow, fromCol, toRow, toCol);
-
-                    GetCellByPosition(toCol, toRow).Controls.Add(botPiece);
-                    botPiece.Dock = DockStyle.Fill;
-                    botPiece.Row = toRow; // Aktualizacja pozycji pionka
-                    botPiece.Col = toCol;
-
-                    Console.WriteLine("zbijający powinien stać na" + toRow + " " + toCol);
-                }
-                else if (availableMoves.Count > 0)
-                {
-                    // Jeśli nie ma dostępnych bic, to wykonaj losowy ruch
-                    Random random = new Random();
-                    int randomIndex = random.Next(availableMoves.Count);
-                    var move = availableMoves[randomIndex];
-
-                    int fromRow = move.Item1;
-                    int fromCol = move.Item2;
-                    int toRow = move.Item3;
-                    int toCol = move.Item4;
-
-                    CheckerPiece botPiece = board.PieceAt(fromRow, fromCol);
-
-                    // Wykonaj ruch
-                    Console.WriteLine(fromRow + " " + fromCol + " " + toRow + " " + toCol);
-                    board.MovePiece(fromRow, fromCol, toRow, toCol);
-
-                    GetCellByPosition(toCol, toRow).Controls.Add(botPiece);
-                    botPiece.Dock = DockStyle.Fill;
-                    botPiece.Row = toRow; // Aktualizacja pozycji pionka
-                    botPiece.Col = toCol;
-
-                    Console.WriteLine("ruch na" + toRow + " " + toCol);
-                }
-                else
-                {
-                    // Jeśli nie ma dostępnych ruchów, to czerwoni przegrywają
-                    MessageBox.Show("Czerwoni przegrywają. Koniec gry.");
-                    // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
-                }
-            }
         }
-
-
 
 
         private List<Tuple<int, int, int, int>> FindAllAvailableMoves(Color playerColor)
@@ -242,16 +223,9 @@ namespace Warcaby
         {
             // Zmiana gracza
             isPlayer1Turn = !isPlayer1Turn;
-
-            if (isPlayer1Turn)
-            {
-                lblCurrentPlayer.Text = "Gracz 1";
-            }
-            else
-            {
-                lblCurrentPlayer.Text = "Gracz 2";
-                PerformBotMove(); // Jeśli to ruch bota (jeśli gra z komputerem)
-            }
+            lblCounter.Text = "Liczba ruchów: " + moveCounter;
+            UpdateCurrentPlayerLabel();
+            
 
             // Sprawdzenie dostępnych ruchów
             bool playerHasMoves = CheckAvailableMoves(isPlayer1Turn);
@@ -296,7 +270,7 @@ namespace Warcaby
             {
                 lblCurrentPlayer.Text = "Gra dla dwóch graczy";
             }
-
+            StartGame();
             // Utwórz instancję klasy Board i przekaż do niej referencję do tego obiektu GameForm
 
         }
@@ -650,6 +624,11 @@ namespace Warcaby
             MainMenuForm mainMenu = new MainMenuForm();
             mainMenu.Show();
             this.Close();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
