@@ -330,17 +330,23 @@ namespace Warcaby
                     }
                 }
 
-                if (numberOfPiecesBetween >= 1)
+                if (numberOfPiecesBetween == 1)
                 {
                     // Tutaj zmieniamy kolor na czerwony
                     Console.WriteLine("Możesz zbijać.");
                     return true;
+                }
+                else
+                {
+                    // Brak miejsca do stania za bitym pionkiem
+                    return false;
                 }
             }
 
             Console.WriteLine("Ten skok nie jest dozwolony dla damy.");
             return false;
         }
+
 
 
 

@@ -15,14 +15,13 @@ namespace Warcaby
         private bool isPlayer1Turn = true; // Zmienna śledząca aktualnego gracza (true - gracz 1, false - gracz 2)
         private string level;
         private int moveCounter = 0;
-        public string player1Name;
-        private string player2Name;
+        public string player1Name = "Player1";
+        private string player2Name = "Player2";
         private List<Tuple<string, int>> scores = new List<Tuple<string, int>>();
 
         private void StartGame()
         {
             PlayerNameForm playerNameForm = new PlayerNameForm();
-
             if (level == "Multiplayer")
             {
                 // Wprowadź imiona dwóch graczy
@@ -45,6 +44,8 @@ namespace Warcaby
                     player2Name = "Bot";
                 }
             }
+            label2.Text = player1Name;
+            label1.Text = player2Name;
 
             UpdateCurrentPlayerLabel();
 
@@ -68,7 +69,7 @@ namespace Warcaby
             else
             {
                 // Zapisz wynik tylko, jeśli gracz nie jest botem
-                if (level != "Multiplayer" || isPlayer1Turn)
+                if (level != "Multiplayer" && isPlayer1Turn)
                 {
                     SaveScores(player1Name, moveCounter);
                 }
@@ -116,11 +117,11 @@ namespace Warcaby
             if (isPlayer1Turn)
             {
                 moveCounter++;
-                lblCurrentPlayer.Text = "Gracz 1: " + player1Name;
+                lblCurrentPlayer.Text = "Tura: " + player1Name;
             }
             else
             {
-                lblCurrentPlayer.Text = "Gracz 2: " + player2Name;
+                lblCurrentPlayer.Text = "Tura: " + player2Name;
                 PerformBotMove();
             }
         }
@@ -316,6 +317,7 @@ namespace Warcaby
 
         public GameForm(string difficulty)
         {
+            this.StartPosition = FormStartPosition.CenterScreen;
             InitializeComponent();
             board = new Board(this);
             this.level = difficulty;
@@ -690,6 +692,16 @@ namespace Warcaby
         }
 
         private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void GameForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click_1(object sender, EventArgs e)
         {
 
         }

@@ -15,6 +15,7 @@ namespace Warcaby
 
         public ScoreboardForm()
         {
+            this.StartPosition = FormStartPosition.CenterScreen;
             InitializeComponent();
             LoadScores();
         }
@@ -68,6 +69,11 @@ namespace Warcaby
             MainMenuForm mainMenuForm = new MainMenuForm();
             mainMenuForm.Show();
             this.Close();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 

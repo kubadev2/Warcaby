@@ -36,7 +36,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(134, 30);
+            this.label1.Location = new System.Drawing.Point(134, 33);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(90, 13);
             this.label1.TabIndex = 0;
@@ -44,9 +44,9 @@
             // 
             // txtName
             // 
-            this.txtName.Location = new System.Drawing.Point(124, 65);
+            this.txtName.Location = new System.Drawing.Point(123, 65);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(100, 20);
+            this.txtName.Size = new System.Drawing.Size(112, 20);
             this.txtName.TabIndex = 1;
             this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
             // 
@@ -54,7 +54,7 @@
             // 
             this.btnStart.Location = new System.Drawing.Point(137, 104);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(75, 23);
+            this.btnStart.Size = new System.Drawing.Size(87, 23);
             this.btnStart.TabIndex = 2;
             this.btnStart.Text = "Dodaj Gracza";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -70,6 +70,7 @@
             this.Controls.Add(this.label1);
             this.Name = "PlayerNameForm";
             this.Text = "PlayerNameForm";
+            this.Load += new System.EventHandler(this.PlayerNameForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -14,6 +14,7 @@ namespace Warcaby
     {
         public MainMenuForm()
         {
+            this.StartPosition = FormStartPosition.CenterScreen;
             InitializeComponent();
         }
 

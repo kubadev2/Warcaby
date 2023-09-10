@@ -16,6 +16,7 @@ namespace Warcaby
 
         public PlayerNameForm()
         {
+            this.StartPosition = FormStartPosition.CenterScreen;
             InitializeComponent();
         }
 
@@ -28,6 +29,11 @@ namespace Warcaby
         {
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void PlayerNameForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
