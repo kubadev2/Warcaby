@@ -15,6 +15,8 @@ namespace Warcaby
         public MainMenuForm()
         {
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.WindowState = FormWindowState.Maximized;
             InitializeComponent();
         }
 

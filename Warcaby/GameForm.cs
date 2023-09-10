@@ -318,6 +318,8 @@ namespace Warcaby
         public GameForm(string difficulty)
         {
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.WindowState = FormWindowState.Maximized;
+            this.FormBorderStyle = FormBorderStyle.None;
             InitializeComponent();
             board = new Board(this);
             this.level = difficulty;
@@ -340,9 +342,8 @@ namespace Warcaby
         private void SetupBoard()
         {
             bool isWhite = true;
-            int cellSize = 60; // Rozmiar komórki planszy
-            int leftPadding = 50; // Odległość od lewej krawędzi formularza
-
+            int cellSize = 100; // Rozmiar komórki planszy
+            int leftPadding = 120; // Odległość od lewej krawędzi formularza
             char[] letters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
             int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8 };
 
@@ -356,7 +357,8 @@ namespace Warcaby
                     TextAlign = ContentAlignment.MiddleCenter,
                     Text = letters[col].ToString(),
                     Font = new Font(Font.FontFamily, 14, FontStyle.Bold),
-                    ForeColor = isWhite ? Color.Black : Color.White
+                    ForeColor = isWhite ? Color.Black : Color.White,
+                    Anchor = AnchorStyles.None
                 };
 
                 this.Controls.Add(letterLabel);
@@ -370,7 +372,8 @@ namespace Warcaby
                     {
                         Location = new Point(leftPadding + col * cellSize, (row + 1) * cellSize),
                         Size = new Size(cellSize, cellSize),
-                        BackColor = board.GetCellColor(row, col)
+                        BackColor = board.GetCellColor(row, col),
+                        Anchor = AnchorStyles.None
                     };
 
                     cellPanel.Click += CellPanel_Click;
@@ -395,6 +398,7 @@ namespace Warcaby
                     {
                         Label numberLabel = new Label
                         {
+                            Anchor = AnchorStyles.None,
                             Location = new Point(col * cellSize, (row + 1) * cellSize),
                             Size = new Size(leftPadding, cellSize),
                             TextAlign = ContentAlignment.MiddleCenter,

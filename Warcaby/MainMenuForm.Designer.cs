@@ -35,9 +35,11 @@
             // 
             // btnVsComputer
             // 
-            this.btnVsComputer.Location = new System.Drawing.Point(338, 113);
+            this.btnVsComputer.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.btnVsComputer.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.btnVsComputer.Location = new System.Drawing.Point(225, 33);
             this.btnVsComputer.Name = "btnVsComputer";
-            this.btnVsComputer.Size = new System.Drawing.Size(136, 23);
+            this.btnVsComputer.Size = new System.Drawing.Size(383, 68);
             this.btnVsComputer.TabIndex = 0;
             this.btnVsComputer.Text = "Graj z komputerem";
             this.btnVsComputer.UseVisualStyleBackColor = true;
@@ -45,9 +47,11 @@
             // 
             // btnMultiplayer
             // 
-            this.btnMultiplayer.Location = new System.Drawing.Point(338, 188);
+            this.btnMultiplayer.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.btnMultiplayer.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.btnMultiplayer.Location = new System.Drawing.Point(225, 161);
             this.btnMultiplayer.Name = "btnMultiplayer";
-            this.btnMultiplayer.Size = new System.Drawing.Size(136, 23);
+            this.btnMultiplayer.Size = new System.Drawing.Size(383, 68);
             this.btnMultiplayer.TabIndex = 1;
             this.btnMultiplayer.Text = "Graj z innym graczem";
             this.btnMultiplayer.UseVisualStyleBackColor = true;
@@ -55,9 +59,11 @@
             // 
             // btnScoreboard
             // 
-            this.btnScoreboard.Location = new System.Drawing.Point(338, 259);
+            this.btnScoreboard.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.btnScoreboard.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.btnScoreboard.Location = new System.Drawing.Point(225, 294);
             this.btnScoreboard.Name = "btnScoreboard";
-            this.btnScoreboard.Size = new System.Drawing.Size(136, 23);
+            this.btnScoreboard.Size = new System.Drawing.Size(383, 68);
             this.btnScoreboard.TabIndex = 2;
             this.btnScoreboard.Text = "Tabele wyników";
             this.btnScoreboard.UseVisualStyleBackColor = true;
