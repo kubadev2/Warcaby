@@ -114,7 +114,7 @@ namespace Warcaby
 
             if (pieces[toRow, toCol] != null)
             {
-                Console.WriteLine("Docelowa komórka jest zajęta, nie można przesunąć pionka.");
+                //Console.WriteLine("Docelowa komórka jest zajęta, nie można przesunąć pionka.");
                 return false;
             }
             if (piece.IsKing)
@@ -138,7 +138,7 @@ namespace Warcaby
             }
 
 
-            Console.WriteLine("Ten ruch nie jest dozwolony.");
+            //Console.WriteLine("Ten ruch nie jest dozwolony.");
             return false;
         }
 
@@ -148,13 +148,13 @@ namespace Warcaby
 
             if (piece == null)
             {
-                Console.WriteLine("Pole jest puste, nie można wykonać skoku.");
+               // Console.WriteLine("Pole jest puste, nie można wykonać skoku.");
                 return false;
             }
 
             if (pieces[toRow, toCol] != null)
             {
-                Console.WriteLine("Docelowa komórka jest zajęta, nie można wykonać skoku.");
+                //Console.WriteLine("Docelowa komórka jest zajęta, nie można wykonać skoku.");
                 return false;
             }
             if (piece.IsKing)
@@ -180,7 +180,7 @@ namespace Warcaby
                 }
             }
 
-            Console.WriteLine("Ten skok nie jest dozwolony.");
+           // Console.WriteLine("Ten skok nie jest dozwolony.");
             return false;
         }
         public void MoveKing(int fromRow, int fromCol, int toRow, int toCol)
