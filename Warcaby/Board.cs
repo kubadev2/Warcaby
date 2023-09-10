@@ -161,7 +161,6 @@ namespace Warcaby
             {
                 return IsValidJumpKing(fromRow, fromCol, toRow, toCol);
             }
-
             int rowDiff = Math.Abs(toRow - fromRow);
             int colDiff = Math.Abs(toCol - fromCol);
 
@@ -331,7 +330,7 @@ namespace Warcaby
                     }
                 }
 
-                if (numberOfPiecesBetween <= 1)
+                if (numberOfPiecesBetween >= 1)
                 {
                     // Tutaj zmieniamy kolor na czerwony
                     Console.WriteLine("Możesz zbijać.");

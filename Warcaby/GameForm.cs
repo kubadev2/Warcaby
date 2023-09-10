@@ -14,7 +14,7 @@ namespace Warcaby
         private bool isPlayer1Turn = true; // Zmienna śledząca aktualnego gracza (true - gracz 1, false - gracz 2)
         private string level;
         private int moveCounter = 0;
-        private string player1Name;
+        public string player1Name;
         private string player2Name;
         private void StartGame()
         {
@@ -262,9 +262,6 @@ namespace Warcaby
             if (difficulty != "Multiplayer")
             {
                 lblCurrentPlayer.Text = "Gra z komputerem: " + difficulty;
-
-
-
             }
             else
             {
@@ -455,8 +452,9 @@ namespace Warcaby
                     int toCol = clickedCol;
 
                     CheckerPiece clickedPiece = board.PieceAt(clickedRow, clickedCol);
-
-                    if (FindAllAvailableJumps(Color.White).Count > 0)
+                    string currentPlayerColor;
+                    
+                    if (FindAllAvailableJumps(selectedPiece.PieceColor).Count > 0)
                     {
                         Console.WriteLine(FindAllAvailableJumps(selectedPiece.PieceColor).Count);
                         if (board.IsValidJump(fromRow, fromCol, toRow, toCol))
@@ -464,9 +462,11 @@ namespace Warcaby
                             if (toRow == 0 && selectedPiece.PieceColor == Color.White)
                             {
                                 selectedPiece.IsKing = true;
-                                selectedPiece.BackColor = Color.Gold;
                             }
-
+                            else if (toRow == 7 && selectedPiece.PieceColor == Color.Red)
+                            {
+                                selectedPiece.IsKing = true;
+                            }
                             selectedPiece.BackColor = defaultCellColor;
                             selectedPiece = null;
 
