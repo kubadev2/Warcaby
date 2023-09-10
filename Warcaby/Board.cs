@@ -83,14 +83,13 @@ namespace Warcaby
                     Panel jumpedCell = gameForm.GetCellByPosition(jumpedCol, jumpedRow);
                     jumpedCell.Controls.Remove(jumpedPiece);
                     jumpedCell.Controls.Clear();
-                    //jumpedPiece.Dispose();
+                    newPiece.HasJumped = true;
                 }
 
                 // Awansuj pionek na damę, jeśli dotrze do końca planszy
                 if ((toRow == 0 && newPiece.PieceColor == Color.White) || (toRow == 7 && newPiece.PieceColor == Color.Red))
                 {
                     newPiece.IsKing = true;
-                    newPiece.BackColor = Color.Gold;
                 }
 
                 // Odznacz wybrany pionek po wykonaniu ruchu
@@ -274,10 +273,11 @@ namespace Warcaby
                         Console.WriteLine("Na trasie ruchu jest inny pionek, sprawdzamy czy możemy usunąć.");
                         return IsValidJump(fromRow, fromCol, toRow, toCol);
                     }
+
                 }
 
                 // Zakończ bieżący skok (jeśli taki istnieje)
-                isJumpInProgress = false;
+                isJumpInProgress = false;//jeśli będzie problem z wielokrotnym biciem zajrzeć tutaj
                 return true;
             }
 

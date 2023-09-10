@@ -11,6 +11,8 @@ namespace Warcaby
         public bool IsKing { get; set; }
         public int Row { get; set; }
         public int Col { get; set; }
+        public bool HasJumped { get; set; } = false;
+
         public static CheckerPiece None { get; internal set; }
 
         private Label kingLabel;

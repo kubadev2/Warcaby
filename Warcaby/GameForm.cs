@@ -22,9 +22,37 @@ namespace Warcaby
                 // Znajdź wszystkie dostępne ruchy dla czerwonych pionków
                 List<Tuple<int, int, int, int>> availableMoves = FindAllAvailableMoves(Color.Red);
 
-                // Jeśli są dostępne ruchy, wykonaj losowy ruch
-                if (availableMoves.Count > 0)
+                // Znajdź wszystkie dostępne bicia dla czerwonych pionków
+                List<Tuple<int, int, int, int>> availableJumps = FindAllAvailableJumps(Color.Red);
+
+                // Jeśli są dostępne bicia, wykonaj losowe bicie
+                if (availableJumps.Count > 0)
                 {
+                    Random random = new Random();
+                    int randomIndex = random.Next(availableJumps.Count);
+                    var jump = availableJumps[randomIndex];
+
+                    int fromRow = jump.Item1;
+                    int fromCol = jump.Item2;
+                    int toRow = jump.Item3;
+                    int toCol = jump.Item4;
+
+                    CheckerPiece botPiece = board.PieceAt(fromRow, fromCol);
+
+                    // Wykonaj bicie
+                    Console.WriteLine(fromRow + " " + fromCol + " " + toRow + " " + toCol);
+                    board.MovePiece(fromRow, fromCol, toRow, toCol);
+
+                    GetCellByPosition(toCol, toRow).Controls.Add(botPiece);
+                    botPiece.Dock = DockStyle.Fill;
+                    botPiece.Row = toRow; // Aktualizacja pozycji pionka
+                    botPiece.Col = toCol;
+
+                    Console.WriteLine("zbijający powinien stać na" + toRow + " " + toCol);
+                }
+                else if (availableMoves.Count > 0)
+                {
+                    // Jeśli nie ma dostępnych bic, to wykonaj losowy ruch
                     Random random = new Random();
                     int randomIndex = random.Next(availableMoves.Count);
                     var move = availableMoves[randomIndex];
@@ -45,7 +73,7 @@ namespace Warcaby
                     botPiece.Row = toRow; // Aktualizacja pozycji pionka
                     botPiece.Col = toCol;
 
-                    Console.WriteLine("zbijający powinien stać na" + toRow + " " + toCol);
+                    Console.WriteLine("ruch na" + toRow + " " + toCol);
                 }
                 else
                 {
@@ -374,12 +402,13 @@ namespace Warcaby
                         }
                         else if (board.IsValidJump(selectedPiece.Row, selectedPiece.Col, row, col))
                         {
-                            cellPanel.BackColor = Color.Red;
+                            cellPanel.BackColor = Color.Red; // Ustaw na czerwono, jeśli to możliwe bicie damą
                         }
                     }
                 }
             }
         }
+
         private void CheckerPiece_Click(object sender, EventArgs e)
         {
             CheckerPiece clickedPiece = sender as CheckerPiece;
@@ -496,42 +525,61 @@ namespace Warcaby
 
 
         private void RefreshAvailableMoves()
+{
+    // Usuń podświetlenie dostępnych ruchów (przywróć domyślny kolor tła)
+    foreach (Control control in this.Controls)
+    {
+        if (control is Panel cellPanel)
         {
-            // Usuń podświetlenie dostępnych ruchów (przywróć domyślny kolor tła)
-            foreach (Control control in this.Controls)
+            Tuple<int, int> position = cellPanel.Tag as Tuple<int, int>;
+            if (position != null)
             {
-                if (control is Panel cellPanel)
-                {
-                    Tuple<int, int> position = cellPanel.Tag as Tuple<int, int>;
-                    if (position != null)
-                    {
-                        int row = position.Item1;
-                        int col = position.Item2;
-                        cellPanel.BackColor = board.GetCellColor(row, col);
-                    }
-                }
+                int row = position.Item1;
+                int col = position.Item2;
+                cellPanel.BackColor = board.GetCellColor(row, col);
             }
+        }
+    }
 
-            // Jeśli wybrano pionka, podświetl dostępne ruchy
-            if (selectedPiece != null)
+    // Jeśli wybrano pionka, podświetl dostępne ruchy
+    if (selectedPiece != null)
+    {
+        int fromRow = selectedPiece.Row;
+        int fromCol = selectedPiece.Col;
+
+        // Sprawdź, czy gracz ma dostępne bicia
+        List<Tuple<int, int, int, int>> availableJumps = FindAllAvailableJumps(selectedPiece.PieceColor);
+
+        if (availableJumps.Count > 0)
+        {
+            // Gracz ma dostępne bicia, ogranicz ruchy tylko do bić
+            foreach (var jump in availableJumps)
             {
-                int fromRow = selectedPiece.Row;
-                int fromCol = selectedPiece.Col;
-
-                for (int row = 0; row < 8; row++)
+                int toRow = jump.Item3;
+                int toCol = jump.Item4;
+                Panel cellPanel = GetCellByPosition(toCol, toRow);
+                cellPanel.BackColor = Color.Red; // Podświetl dostępne bicia na czerwono
+            }
+        }
+        else
+        {
+            // Gracz nie ma dostępnych bić, podświetl dostępne zwykłe ruchy
+            for (int row = 0; row < 8; row++)
+            {
+                for (int col = 0; col < 8; col++)
                 {
-                    for (int col = 0; col < 8; col++)
+                    if (board.IsValidMove(fromRow, fromCol, row, col) &&
+                        GetCellByPosition(col, row).BackColor == Color.Black) // Sprawdź, czy pole jest czarne
                     {
-                        if (board.IsValidMove(fromRow, fromCol, row, col) &&
-                            GetCellByPosition(col, row).BackColor == Color.Black) // Sprawdź, czy pole jest czarne
-                        {
-                            Panel cellPanel = GetCellByPosition(col, row);
-                            cellPanel.BackColor = Color.Green; // Podświetl dostępne ruchy na zielono
-                        }
+                        Panel cellPanel = GetCellByPosition(col, row);
+                        cellPanel.BackColor = Color.Green; // Podświetl dostępne ruchy na zielono
                     }
                 }
             }
         }
+    }
+}
+
 
 
         public Panel GetCellByPosition(int col, int row)
