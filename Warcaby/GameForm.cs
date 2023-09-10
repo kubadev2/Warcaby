@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -16,6 +17,8 @@ namespace Warcaby
         private int moveCounter = 0;
         public string player1Name;
         private string player2Name;
+        private List<Tuple<string, int>> scores = new List<Tuple<string, int>>();
+
         private void StartGame()
         {
             PlayerNameForm playerNameForm = new PlayerNameForm();
@@ -47,6 +50,66 @@ namespace Warcaby
 
             // Rozpocznij grę
         }
+        private void EndGame()
+        {
+            // Kod kończący grę, np. wyświetlenie komunikatu o wygranej lub remisie
+
+            if (level == "Multiplayer")
+            {
+                if (isPlayer1Turn)
+                {
+                    SaveScores(player1Name, moveCounter);
+                }
+                else
+                {
+                    SaveScores(player2Name, moveCounter);
+                }
+            }
+            else
+            {
+                // Zapisz wynik tylko, jeśli gracz nie jest botem
+                if (level != "Multiplayer" || isPlayer1Turn)
+                {
+                    SaveScores(player1Name, moveCounter);
+                }
+            }
+
+
+            // Otwórz formularz ScoreboardForm
+            ScoreboardForm scoreboardForm = new ScoreboardForm();
+            scoreboardForm.Show();
+            this.Hide(); // Ukryj bieżący formularz (GameForm) lub zamknij go, w zależności od Twoich potrzeb
+        }
+        private void SaveScores(string playerName, int moves)
+        {
+            scores.Add(new Tuple<string, int>(playerName, moves));
+
+            // Sortuj wyniki od najlepszego do najgorszego
+            scores.Sort((a, b) => a.Item2.CompareTo(b.Item2));
+
+            // Jeśli lista ma więcej niż 10 wyników, ogranicz ją do top 10
+            if (scores.Count > 10)
+            {
+                scores = scores.GetRange(0, 10);
+            }
+
+            string fileName = "wyniki.txt";
+
+            try
+            {
+                // Dopisz wynik do pliku zamiast go nadpisywać
+                using (StreamWriter writer = new StreamWriter(fileName, true))
+                {
+                    writer.WriteLine(playerName + ":" + moves);
+                }
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine("Błąd zapisu pliku wyniki.txt: " + ex.Message);
+            }
+        }
+
+
 
         private void UpdateCurrentPlayerLabel()
         {
@@ -235,7 +298,7 @@ namespace Warcaby
                 // Jeśli gracz nie ma dostępnych ruchów, wyświetl komunikat o zwycięstwie przeciwnika
                 string winner = isPlayer1Turn ? "Gracz 2" : "Gracz 1";
                 MessageBox.Show(winner + " zwycięża. Koniec gry.");
-                // Tutaj możesz dodać kod do resetowania gry lub wyjścia z aplikacji
+                EndGame();
             }
         }
 

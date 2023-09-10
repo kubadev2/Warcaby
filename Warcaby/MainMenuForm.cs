@@ -33,8 +33,8 @@ namespace Warcaby
 
         private void btnScoreboard_Click(object sender, EventArgs e)
         {
-            ScoreboardChoiceForm scoreboardChoiceForm = new ScoreboardChoiceForm();
-            scoreboardChoiceForm.Show();
+            ScoreboardForm scoreboardForm = new ScoreboardForm();
+            scoreboardForm.Show();
             this.Hide();
         }
     }
